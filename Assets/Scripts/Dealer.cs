@@ -1,24 +1,20 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Dealer : MonoBehaviour {
-    // Start is called before the first frame update
     void Start() {
-        List<Hand> hands = new List<Hand>();
-            
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 20; i++) {
             Deck.Shuffle();
-            
+
             Card c0 = Deck.GetNextCard();
             Card c1 = Deck.GetNextCard();
             Card c2 = Deck.GetNextCard();
             Card c3 = Deck.GetNextCard();
             Card c4 = Deck.GetNextCard();
+            Card c5 = Deck.GetNextCard();
+            Card c6 = Deck.GetNextCard();
             
-            hands.Add(new Hand(c0, c1, c2, c3, c4));
+            SevenCardEvaluator evaluator = new SevenCardEvaluator(c0, c1, c2, c3, c4, c5, c6);
+            Debug.Log(c0 + " " + c1 + " " + c2  + " " + c3  + " " + c4  + " " + c5  + " " + c6 + " -> " + evaluator.BestHand);
         }
-
-        hands.Sort();
-        hands.ForEach(hand => Debug.Log(hand));
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 public class Hand : IComparable<Hand> {
@@ -44,61 +43,26 @@ public class Hand : IComparable<Hand> {
     }
     
     private int CompareHighCard(Hand other) {
-        List<int> kickers = new List<int>();
-        List<int> kickersOther = new List<int>();
-
-        for (int i = 0; i < 5; i++) {
-            kickers.Add((int) Cards[i].Rank);
-            kickersOther.Add((int) other.Cards[i].Rank);
-        }
-
-        return CompareListsOfRanks(kickers, kickersOther);
+        return CompareMultiple(other, 1);
     }
     
     private int CompareOnePair(Hand other) {
-        int pair = FindIndexOfRank(this, 2);
-        int pairOther = FindIndexOfRank(other, 2);
-
-        int result = CompareRanks(pair, pairOther);
-        if (result != 0) return result;
-
-        List<int> kickers = FindAllIndexesOfRank(this, 1);
-        List<int> kickersOther = FindAllIndexesOfRank(other, 1);
-
-        return CompareListsOfRanks(kickers, kickersOther);
+        int result = CompareSingle(other, 2);
+        return result != 0 ? result : CompareMultiple(other, 1);
     }
     
     private int CompareTwoPair(Hand other) {
-        List<int> pairs = FindAllIndexesOfRank(this, 2);
-        List<int> pairsOther = FindAllIndexesOfRank(other, 2);
-
-        int result = CompareListsOfRanks(pairs, pairsOther);
-        if (result != 0) return result;
-
-        int kicker = FindIndexOfRank(this, 1);
-        int kickerOther = FindIndexOfRank(this, 1);
-        
-        return CompareRanks(kicker, kickerOther);
+        int result = CompareMultiple(other, 2);
+        return result != 0 ? result : CompareSingle(other, 1);
     }
     
     private int CompareThrees(Hand other) {
-        int threes = FindIndexOfRank(this, 3);
-        int threesOther = FindIndexOfRank(other, 3);
-
-        int result = CompareRanks(threes, threesOther);
-        if (result != 0) return result;
-
-        List<int> kickers = FindAllIndexesOfRank(this, 1);
-        List<int> kickersOther = FindAllIndexesOfRank(other, 1);
-
-        return CompareListsOfRanks(kickers, kickersOther);
+        int result = CompareSingle(other, 3);
+        return result != 0 ? result : CompareMultiple(other, 1);
     }
     
     private int CompareStraight(Hand other) {
-        int highestRank = (int) Cards.Max().Rank;
-        int highestRankOther = (int) other.Cards.Max().Rank;
-
-        return CompareRanks(highestRank, highestRankOther);
+        return CompareHighCard(other);
     }
     
     private int CompareFlush(Hand other) {
@@ -106,33 +70,17 @@ public class Hand : IComparable<Hand> {
     }
     
     private int CompareFullHouse(Hand other) {
-        int threes = FindIndexOfRank(this, 3);
-        int threesOther = FindIndexOfRank(other, 3);
-
-        int result = CompareRanks(threes, threesOther);
-        if (result != 0) return result;
-        
-        int pair = FindIndexOfRank(this, 2);
-        int pairOther = FindIndexOfRank(other, 2);
-
-        return CompareRanks(pair, pairOther);
+        int result = CompareSingle(other, 3);
+        return result != 0 ? result : CompareSingle(other, 2);
     }
     
     private int CompareFours(Hand other) {
-        int fours = FindIndexOfRank(this, 4);
-        int foursOther = FindIndexOfRank(other, 4);
-        
-        int result = CompareRanks(fours, foursOther);
-        if (result != 0) return result;
-
-        int kicker = FindIndexOfRank(this, 1);
-        int kickerOther = FindIndexOfRank(other, 1);
-        
-        return CompareRanks(kicker, kickerOther);
+        int result = CompareSingle(other, 4);
+        return result != 0 ? result : CompareSingle(other, 1);
     }
     
     private int CompareStraightFlush(Hand other) {
-        return CompareStraight(other);
+        return CompareHighCard(other);
     }
 
     private static int FindIndexOfRank(Hand hand, int cardinality) {
@@ -159,13 +107,20 @@ public class Hand : IComparable<Hand> {
         return indexes;
     }
 
-    private static int CompareRanks(int rank, int rankOther) {
+    private int CompareSingle(Hand other, int cardinality) {
+        int rank = FindIndexOfRank(this, cardinality);
+        int rankOther = FindIndexOfRank(other, cardinality);
+
         if (rank > rankOther) return 1;
         if (rank == rankOther) return 0;
         return -1;
     }
 
-    private static int CompareListsOfRanks(List<int> ranks, List<int> ranksOther) {
+    private int CompareMultiple(Hand other, int cardinality) {
+        // If cardinality = 2, finds all the pairs and compares the pairs by ranks.
+        List<int> ranks = FindAllIndexesOfRank(this, cardinality);
+        List<int> ranksOther = FindAllIndexesOfRank(other, cardinality);
+        
         ranks.Sort();
         ranksOther.Sort();
         

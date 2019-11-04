@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
     <e p="C:\Users\FICHEKK\.Rider2019.2\system\extResources" t="IncludeRecursive" />
@@ -15,6 +15,7 @@
           <e p="HandValue.cs" t="Include" />
           <e p="Player.cs" t="Include" />
           <e p="Rank.cs" t="Include" />
+          <e p="SevenCardEvaluator.cs" t="Include" />
           <e p="Suit.cs" t="Include" />
         </e>
       </e>
