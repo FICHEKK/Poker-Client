@@ -90,22 +90,25 @@
                 flags[(int) card.Rank] = true;
             }
         }
-        
-        // The test.
+
+        int streakStart = 0;
+
         for (int i = 0; i < 14; i++) {
-            // Skip false flags until the first true flag.
             if(flags[i] == false)
                 continue;
-
-            // We found the start of the streak. Now
-            // the next 4 flags also need to be true in
-            // order for this hand to be a straight.
-            for (int j = i + 1; j <= i + 4; j++) {
-                if (flags[j] == false)
-                    return false;
-            }
+            
+            streakStart = i;
+            break;
         }
         
+        // We found the start of the streak. Now
+        // the next 4 flags also need to be true in
+        // order for this hand to be a straight.
+        for (int i = streakStart + 1; i <= streakStart + 4; i++) {
+            if (flags[i] == false)
+                return false;
+        }
+            
         // We passed the test. This indeed is a straight.
         return true;
     }
