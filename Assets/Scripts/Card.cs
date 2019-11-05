@@ -40,10 +40,10 @@ public class Card : IComparable<Card> {
         }
 
         switch (Suit) {
-            case Suit.Heart:   sb.Append("♥"); break;
-            case Suit.Diamond: sb.Append("♦"); break;
-            case Suit.Spade:   sb.Append("♠"); break;
-            case Suit.Club:    sb.Append("♣"); break;
+            case Suit.Heart:   sb.Append("H"); break;
+            case Suit.Diamond: sb.Append("D"); break;
+            case Suit.Spade:   sb.Append("S"); break;
+            case Suit.Club:    sb.Append("C"); break;
         }
 
         return sb.ToString();
