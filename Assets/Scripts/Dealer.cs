@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Dealer : MonoBehaviour {
-
-    public TextMeshProUGUI bestHandText;
+    
+    public TextMeshProUGUI myBestHandText;
+    public TextMeshProUGUI opponentBestHandText;
 
     public Image flopCard1;
     public Image flopCard2;
@@ -15,6 +16,9 @@ public class Dealer : MonoBehaviour {
     
     public Image handCard1;
     public Image handCard2;
+
+    public Image opponentCard1;
+    public Image opponentCard2;
     
     void Start() {
         for (int i = 0; i < 20; i++) {
@@ -46,6 +50,9 @@ public class Dealer : MonoBehaviour {
 
         Card hc1 = Deck.GetNextCard();
         Card hc2 = Deck.GetNextCard();
+
+        Card ohc1 = Deck.GetNextCard();
+        Card ohc2 = Deck.GetNextCard();
         
         Card fc1 = Deck.GetNextCard();
         Card fc2 = Deck.GetNextCard();
@@ -56,14 +63,35 @@ public class Dealer : MonoBehaviour {
         handCard1.sprite = LoadSprite(@"Assets\Graphics\Cards\" + hc1 + ".png");
         handCard2.sprite = LoadSprite(@"Assets\Graphics\Cards\" + hc2 + ".png");
         
+        opponentCard1.sprite = LoadSprite(@"Assets\Graphics\Cards\" + ohc1 + ".png");
+        opponentCard2.sprite = LoadSprite(@"Assets\Graphics\Cards\" + ohc2 + ".png");
+        
         flopCard1.sprite = LoadSprite(@"Assets\Graphics\Cards\" + fc1 + ".png");
         flopCard2.sprite = LoadSprite(@"Assets\Graphics\Cards\" + fc2 + ".png");
         flopCard3.sprite = LoadSprite(@"Assets\Graphics\Cards\" + fc3 + ".png");
         turnCard.sprite = LoadSprite(@"Assets\Graphics\Cards\" + tc + ".png");
         riverCard.sprite = LoadSprite(@"Assets\Graphics\Cards\" + rc + ".png");
         
-        SevenCardEvaluator evaluator = new SevenCardEvaluator(hc1, hc2, fc1, fc2, fc3, tc, rc);
-        bestHandText.text = evaluator.BestHand.HandAnalyser.HandValue.ToString();
+        SevenCardEvaluator myEvaluator = new SevenCardEvaluator(hc1, hc2, fc1, fc2, fc3, tc, rc);
+        myBestHandText.text = myEvaluator.BestHand.HandAnalyser.HandValue.ToString();
+        
+        SevenCardEvaluator opponentEvaluator = new SevenCardEvaluator(ohc1, ohc2, fc1, fc2, fc3, tc, rc);
+        opponentBestHandText.text = opponentEvaluator.BestHand.HandAnalyser.HandValue.ToString();
+
+        int result = myEvaluator.BestHand.CompareTo(opponentEvaluator.BestHand);
+        if (result > 0) {
+            myBestHandText.color = Color.green;
+            opponentBestHandText.color = Color.red;
+
+        } else if (result == 0) {
+            myBestHandText.color = Color.gray;
+            opponentBestHandText.color = Color.gray;
+
+        } else {
+            myBestHandText.color = Color.red;
+            opponentBestHandText.color = Color.green;
+
+        }
     }
 
     private static Sprite LoadSprite(string filePath) {
