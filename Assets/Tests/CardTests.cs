@@ -36,5 +36,25 @@ namespace Tests
             
             Assert.AreEqual(-1, comparisonResult);
         }
+        
+        [Test]
+        public void CompareTo_ArgumentNull_ReturnsOne()
+        {
+            Card card = new Card(Rank.Two, Suit.Heart);
+            
+            int comparisonResult = card.CompareTo(null);
+            
+            Assert.AreEqual(1, comparisonResult);
+        }
+        
+        [Test]
+        public void CompareTo_SameReference_ReturnsZero()
+        {
+            Card card = new Card(Rank.Two, Suit.Heart);
+            
+            int comparisonResult = card.CompareTo(card);
+            
+            Assert.AreEqual(0, comparisonResult);
+        }
     }
 }
