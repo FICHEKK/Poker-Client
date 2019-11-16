@@ -15,9 +15,10 @@ public class Card : IComparable<Card> {
         if (ReferenceEquals(this, other)) return 0;
         if (ReferenceEquals(null, other)) return 1;
 
-        if ((int) Rank < (int) other.Rank) return -1;
+        if ((int) Rank > (int) other.Rank) return 1;
         if (Rank == other.Rank) return 0;
-        return 1;
+        
+        return -1;
     }
     
     public override string ToString() {
