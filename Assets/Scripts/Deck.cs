@@ -1,42 +1,43 @@
 ﻿using System;
 using Random = System.Random;
 
-public static class Deck {
+public class Deck {
 
-    private static int index;
-    private static Random rng = new Random();
-    private static Card[] cards = new Card[52];
+    private static readonly Random Rng = new Random();
+    
+    private int _index;
+    private readonly Card[] _cards = new Card[52];
 
-    static Deck() {
+    public Deck() {
         int i = 0;
         
         foreach (Suit suit in Enum.GetValues(typeof(Suit))) {
             foreach (Rank rank in Enum.GetValues(typeof(Rank))) {
-                cards[i] = new Card(rank, suit);
+                _cards[i] = new Card(rank, suit);
                 i++;
             }
         }
     }
 
-    public static void Shuffle() {
-        int n = cards.Length;
+    public void Shuffle() {
+        int n = _cards.Length;
         
         while (n > 1)  {
-            int k = rng.Next(n--);
+            int k = Rng.Next(n--);
             
-            Card temp = cards[n];
-            cards[n] = cards[k];
-            cards[k] = temp;
+            Card temp = _cards[n];
+            _cards[n] = _cards[k];
+            _cards[k] = temp;
         }
 
-        index = 0;
+        _index = 0;
     }
 
-    public static bool HasNextCard() {
-        return index < cards.Length;
+    public bool HasNextCard() {
+        return _index < _cards.Length;
     }
 
-    public static Card GetNextCard() {
-        return cards[index++];
+    public Card GetNextCard() {
+        return _cards[_index++];
     }
 }

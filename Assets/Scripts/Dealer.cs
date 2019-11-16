@@ -19,46 +19,23 @@ public class Dealer : MonoBehaviour {
 
     public Image opponentCard1;
     public Image opponentCard2;
-    
-    void Start() {
-        for (int i = 0; i < 20; i++) {
-            Deck.Shuffle();
 
-            /*Card c0 = Deck.GetNextCard();
-            Card c1 = Deck.GetNextCard();
-            Card c2 = Deck.GetNextCard();
-            Card c3 = Deck.GetNextCard();
-            Card c4 = Deck.GetNextCard();
-            Card c5 = Deck.GetNextCard();
-            Card c6 = Deck.GetNextCard();*/
-            
-            Card c0 = new Card(Rank.Ace, Suit.Heart);
-            Card c1 = new Card(Rank.Three, Suit.Heart);
-            Card c2 = new Card(Rank.Ten, Suit.Diamond);
-            Card c3 = new Card(Rank.Four, Suit.Club);
-            Card c4 = new Card(Rank.Five, Suit.Club);
-            Card c5 = new Card(Rank.Two, Suit.Heart);
-            Card c6 = new Card(Rank.Two, Suit.Heart);
-
-            SevenCardEvaluator evaluator = new SevenCardEvaluator(c0, c1, c2, c3, c4, c5, c6);
-            Debug.Log(c0 + " " + c1 + " " + c2  + " " + c3  + " " + c4  + " " + c5  + " " + c6 + " -> " + evaluator.BestHand);
-        }
-    }
+    private Deck _deck = new Deck();
 
     public void DealHand() {
-        Deck.Shuffle();
+        _deck.Shuffle();
 
-        Card hc1 = Deck.GetNextCard();
-        Card hc2 = Deck.GetNextCard();
+        Card hc1 = _deck.GetNextCard();
+        Card hc2 = _deck.GetNextCard();
 
-        Card ohc1 = Deck.GetNextCard();
-        Card ohc2 = Deck.GetNextCard();
+        Card ohc1 = _deck.GetNextCard();
+        Card ohc2 = _deck.GetNextCard();
         
-        Card fc1 = Deck.GetNextCard();
-        Card fc2 = Deck.GetNextCard();
-        Card fc3 = Deck.GetNextCard();
-        Card tc = Deck.GetNextCard();
-        Card rc = Deck.GetNextCard();
+        Card fc1 = _deck.GetNextCard();
+        Card fc2 = _deck.GetNextCard();
+        Card fc3 = _deck.GetNextCard();
+        Card tc = _deck.GetNextCard();
+        Card rc = _deck.GetNextCard();
 
         handCard1.sprite = LoadSprite(@"Assets\Graphics\Cards\" + hc1 + ".png");
         handCard2.sprite = LoadSprite(@"Assets\Graphics\Cards\" + hc2 + ".png");
