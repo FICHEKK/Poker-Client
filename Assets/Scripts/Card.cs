@@ -1,16 +1,40 @@
 ﻿using System;
 using System.Text;
 
+/// <summary>
+/// A simple card model that encapsulates card's rank and suit.
+/// </summary>
 public class Card : IComparable<Card> {
     
+    /// <summary>
+    /// This card's rank.
+    /// </summary>
     public Rank Rank { get; }
+    
+    /// <summary>
+    /// This card's suit.
+    /// </summary>
     public Suit Suit { get; }
 
+    /// <summary>
+    /// Constructs a new card with the given rank and suit.
+    /// </summary>
     public Card(Rank rank, Suit suit) {
         Rank = rank;
         Suit = suit;
     }
 
+    /// <summary>
+    /// Compares this card with the given card. Comparison is entirely
+    /// rank based.
+    /// Ranks from strongest to weakest: A, K, Q, J, 10, 9, 8, 7, 6, 5, 4, 3, 2.
+    /// </summary>
+    /// 
+    /// <returns>
+    /// 1 if this card has higher rank or the provided card is null,
+    /// 0 if both ranks are equal,
+    /// -1 if this card has lower rank
+    /// </returns>
     public int CompareTo(Card other) {
         if (ReferenceEquals(this, other)) return 0;
         if (ReferenceEquals(null, other)) return 1;
@@ -21,6 +45,9 @@ public class Card : IComparable<Card> {
         return -1;
     }
     
+    /// <summary>
+    /// Returns the string representation of this card.
+    /// </summary>
     public override string ToString() {
         StringBuilder sb = new StringBuilder();
 
