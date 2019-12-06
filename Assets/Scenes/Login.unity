@@ -255,6 +255,21 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Text
+      value: 12345678
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_ContentType
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_InputType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.characterCount
@@ -284,6 +299,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_text
       value: Password
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
@@ -490,6 +510,11 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Text
+      value: 7777
+      objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.characterCount
@@ -519,6 +544,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_text
       value: Port
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
@@ -1165,6 +1195,11 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Text
+      value: 127.0.0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.characterCount
@@ -1194,6 +1229,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_text
       value: IP Address
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
@@ -1334,50 +1374,65 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3124076994600798762, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Text
+      value: FICHEKK
+      objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.characterCount
-      value: 0
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.spaceCount
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.wordCount
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.lineCount
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.pageCount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994507273111, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.characterCount
-      value: 0
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.wordCount
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.lineCount
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
         type: 3}
       propertyPath: m_textInfo.pageCount
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124076994668505873, guid: 6d9e519f69a117746abc8939d69dc3c9,
+        type: 3}
+      propertyPath: m_text
+      value: FICHEKK
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6d9e519f69a117746abc8939d69dc3c9, type: 3}
@@ -1553,7 +1608,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Don't have an account? Register here.
+  m_text: Don't have an account? Register here!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1667,7 +1722,7 @@ GameObject:
   - component: {fileID: 1930482622}
   - component: {fileID: 1930482623}
   m_Layer: 5
-  m_Name: Register Button
+  m_Name: Register Here Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1802,6 +1857,7 @@ GameObject:
   - component: {fileID: 2056742145}
   - component: {fileID: 2056742148}
   - component: {fileID: 2056742149}
+  - component: {fileID: 2056742150}
   m_Layer: 5
   m_Name: Login Button
   m_TagString: Untagged
@@ -1955,3 +2011,16 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &2056742150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2056742143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96d1b9b8b9ef8954da931eb4cc57e35c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneToLoad: Lobby
