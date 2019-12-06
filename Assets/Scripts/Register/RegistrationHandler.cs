@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using TMPro;
 using UnityEngine;
@@ -38,12 +37,9 @@ namespace Register {
                     writer.Flush();
 
                     int responseCode = writer.BaseStream.ReadByte();
-                    if (responseCode != -1) {
-                        NotifyPlayer((ServerResponse) responseCode);
-                    }
-                    else {
-                        Debug.Log("Connection with the server was closed.");
-                    }
+                    if (responseCode == -1) return;
+                    
+                    NotifyPlayer((ServerResponse) responseCode);
                 }
             }
             catch (SocketException) {
@@ -149,16 +145,13 @@ namespace Register {
         //----------------------------------------------------------------
         
         private bool IsAddressValid() {
-            string address = addressInputField.text;
-            
-            try {
-                IPAddress.Parse(address);
-                return true;
-            }
-            catch {
+            bool isValid = SocketAddressValidator.ValidateAddress(addressInputField.text);
+
+            if (!isValid) {
                 DisplayMessage("Invalid IP address.", FormErrorColor);
-                return false;
             }
+            
+            return isValid;
         }
         
         //----------------------------------------------------------------
@@ -166,16 +159,13 @@ namespace Register {
         //----------------------------------------------------------------
         
         private bool IsPortValid() {
-            string port = portInputField.text;
+            bool isValid = SocketAddressValidator.ValidatePort(portInputField.text);
             
-            try {
-                short.Parse(port);
-                return true;
-            }
-            catch {
+            if (!isValid) {
                 DisplayMessage("Invalid port number.", FormErrorColor);
-                return false;
             }
+
+            return isValid;
         }
         
         //----------------------------------------------------------------
