@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
 using TMPro;
 using UnityEngine;
@@ -18,29 +19,36 @@ namespace Login {
             int port = int.Parse(portInputField.text);
 
             try {
-                using (TcpClient client = new TcpClient(address, port))
-                using (StreamReader reader = new StreamReader(client.GetStream()))
-                using (StreamWriter writer = new StreamWriter(client.GetStream())) {
-                    writer.BaseStream.WriteByte((byte) ClientRequest.Login);
-                    writer.WriteLine(usernameInputField.text);
-                    writer.WriteLine(passwordInputField.text);
-                    writer.Flush();
+                TcpClient client = new TcpClient(address, port);
+                StreamWriter writer = new StreamWriter(client.GetStream());
 
-                    int responseCode = writer.BaseStream.ReadByte();
-                    if (responseCode == -1) return;
+                writer.BaseStream.WriteByte((byte) ClientRequest.Login);
+                writer.WriteLine(usernameInputField.text);
+                writer.WriteLine(passwordInputField.text);
+                writer.Flush();
 
-                    ServerResponse response = (ServerResponse) responseCode;
+                int responseCode = writer.BaseStream.ReadByte();
+                if (responseCode == -1) return;
 
-                    if (response == ServerResponse.LoginSucceeded) {
-                        PlayerPrefs.SetString("username", usernameInputField.text);
-                        PlayerPrefs.SetString("chipCount", reader.ReadLine());
-                        PlayerPrefs.SetString("winCount", reader.ReadLine());
+                ServerResponse response = (ServerResponse) responseCode;
 
-                        GetComponent<SceneLoader>().LoadScene();
-                    }
-                    else {
-                        NotifyPlayer(response);
-                    }
+                if (response == ServerResponse.LoginSucceeded) {
+                    StreamReader reader = new StreamReader(client.GetStream());
+                    Session.Username = usernameInputField.text;
+                    Session.ChipCount = reader.ReadLine();
+                    Session.WinCount = reader.ReadLine();
+                    
+                    Session.Client = client;
+                    Session.Reader = reader;
+                    Session.Writer = writer;
+
+                    Trace.WriteLine("Učitavam...");
+                    GetComponent<SceneLoader>().LoadScene();
+                }
+                else {
+                    writer.Close();
+                    client.Close();
+                    NotifyPlayer(response);
                 }
             }
             catch (SocketException) {
@@ -49,7 +57,6 @@ namespace Login {
         }
 
         private void NotifyPlayer(ServerResponse response) {
-            
             switch (response) {
                 case ServerResponse.LoginFailedServerIsFull:
                     DisplayMessage("Server is full.");
