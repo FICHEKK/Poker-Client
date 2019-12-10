@@ -11,4 +11,6 @@ public static class Session {
     public static TcpClient Client { get; set; }
     public static StreamReader Reader { get; set; }
     public static StreamWriter Writer { get; set; }
+
+    public static bool TableCreated { get; set; }
 }

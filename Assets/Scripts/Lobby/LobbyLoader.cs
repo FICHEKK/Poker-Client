@@ -12,7 +12,7 @@ namespace Lobby {
 
         void Start() {
             DisplayUserInformation();
-            DisplayTableList();
+            RefreshTableList();
         }
         
         private void DisplayUserInformation() {
@@ -21,10 +21,14 @@ namespace Lobby {
             winCountText.text = "Wins: " + Session.WinCount;
         }
 
-        private void DisplayTableList() {
+        public void RefreshTableList() {
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.TableList);
 
             int tableCount = int.Parse(Session.Reader.ReadLine());
+
+            foreach (Transform t in grid.transform) {
+                Destroy(t.gameObject);
+            }
 
             for (int i = 0; i < tableCount; i++) {
                 string tableName = Session.Reader.ReadLine();
