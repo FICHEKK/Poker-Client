@@ -31,17 +31,22 @@ namespace Lobby {
             }
 
             for (int i = 0; i < tableCount; i++) {
-                string tableName = Session.Reader.ReadLine();
-                string smallBlind = Session.Reader.ReadLine();
-                string bigBlind = (int.Parse(smallBlind) * 2).ToString();
-                string playerCount = Session.Reader.ReadLine();
-                string maxPlayers = Session.Reader.ReadLine();
+                string title = Session.Reader.ReadLine();
+                int smallBlind = int.Parse(Session.Reader.ReadLine());
+                int bigBlind = smallBlind * 2;
+                int playerCount = int.Parse(Session.Reader.ReadLine());
+                int maxPlayers = int.Parse(Session.Reader.ReadLine());
 
-                string buttonTitle = tableName + " | Blinds: " + smallBlind + "/" + bigBlind +
-                                                 " | Players: " + playerCount + "/" + maxPlayers;
+                string buttonTitle = title + " | Blinds: " + smallBlind + "/" + bigBlind + " | Players: " + playerCount + "/" + maxPlayers;
                 GameObject button = Instantiate(tableButton, grid.transform, true);
                 button.transform.localScale = new Vector3(1, 1, 1);
                 button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text = buttonTitle;
+
+                TableData data = button.GetComponent<TableData>();
+                data.Title = title;
+                data.SmallBlind = smallBlind;
+                data.PlayerCount = playerCount;
+                data.MaxPlayers = maxPlayers;
             }
         }
     }

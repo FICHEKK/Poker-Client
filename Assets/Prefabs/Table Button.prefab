@@ -169,6 +169,7 @@ GameObject:
   - component: {fileID: 471956803133465239}
   - component: {fileID: 471956803133465236}
   - component: {fileID: 471956803133465237}
+  - component: {fileID: -2839336321333508634}
   m_Layer: 5
   m_Name: Table Button
   m_TagString: Untagged
@@ -295,3 +296,15 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 1
   m_LayoutPriority: 1
+--- !u!114 &-2839336321333508634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471956803133465243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 323a1cb204114cb3a47b18851b4bdf37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
