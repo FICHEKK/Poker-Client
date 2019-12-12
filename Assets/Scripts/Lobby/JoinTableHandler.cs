@@ -3,18 +3,22 @@ using UnityEngine;
 
 namespace Lobby {
     public class JoinTableHandler : MonoBehaviour {
-        private TMP_Text _messageText;
+        [SerializeField] private TMP_Text messageText;
 
-        public void Start() {
-            _messageText = GameObject.Find("Message Text").GetComponent<TMP_Text>();
-        }
+        private const int MinSmallBlindsToJoin = 20;
 
         public void JoinTable() {
             HideMessage();
-            
-            string title = GetComponent<TableData>().Title;
+
+            TableData tableData = GetComponent<TableData>();
+
+            if (Session.ChipCount < tableData.SmallBlind * MinSmallBlindsToJoin) {
+                DisplayMessage("You do not have enough chips to join this table.");
+                return;
+            }
+
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.JoinTable);
-            Session.Writer.WriteLine(title);
+            Session.Writer.WriteLine(tableData.Title);
             Session.Writer.Flush();
 
             int responseCode = Session.Reader.BaseStream.ReadByte();
@@ -41,12 +45,12 @@ namespace Lobby {
         //----------------------------------------------------------------
 
         private void DisplayMessage(string text) {
-            _messageText.enabled = true;
-            _messageText.text = text;
+            messageText.enabled = true;
+            messageText.text = text;
         }
 
         private void HideMessage() {
-            _messageText.enabled = false;
+            messageText.enabled = false;
         }
     }
 }

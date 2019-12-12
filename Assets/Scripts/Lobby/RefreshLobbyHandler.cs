@@ -16,9 +16,12 @@ namespace Lobby {
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
             Session.Writer.WriteLine(Session.Username);
             Session.Writer.Flush();
-            
-            chipCountText.text = "Chips: " + Session.Reader.ReadLine();
-            winCountText.text = "Wins: " + Session.Reader.ReadLine();
+
+            Session.ChipCount = int.Parse(Session.Reader.ReadLine());
+            Session.WinCount = int.Parse(Session.Reader.ReadLine());
+
+            chipCountText.text = "Chips: " + Session.ChipCount;
+            winCountText.text = "Wins: " + Session.WinCount;
             
             RefreshLobby();
         }
@@ -29,7 +32,7 @@ namespace Lobby {
             int tableCount = int.Parse(Session.Reader.ReadLine());
 
             foreach (Transform t in grid.transform) {
-                Destroy(t.gameObject);
+                t.gameObject.SetActive(false);
             }
 
             for (int i = 0; i < tableCount; i++) {
@@ -39,11 +42,19 @@ namespace Lobby {
                 int playerCount = int.Parse(Session.Reader.ReadLine());
                 int maxPlayers = int.Parse(Session.Reader.ReadLine());
 
-                string buttonTitle = title + " | Blinds: " + smallBlind + "/" + bigBlind + " | Players: " + playerCount + "/" + maxPlayers;
-                GameObject button = Instantiate(tableButton, grid.transform, true);
-                button.transform.localScale = new Vector3(1, 1, 1);
-                button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text = buttonTitle;
-
+                GameObject button;
+                
+                if (i < grid.transform.childCount) {
+                    button = grid.transform.GetChild(i).gameObject;
+                    button.SetActive(true);
+                }
+                else {
+                    button = Instantiate(tableButton, grid.transform, true);
+                }
+                
+                button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text =
+                    title + " | Blinds: " + smallBlind + "/" + bigBlind + " | Players: " + playerCount + "/" + maxPlayers;
+                
                 TableData data = button.GetComponent<TableData>();
                 data.Title = title;
                 data.SmallBlind = smallBlind;

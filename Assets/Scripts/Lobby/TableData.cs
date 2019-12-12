@@ -13,5 +13,12 @@ namespace Lobby {
             PlayerCount = playerCount;
             MaxPlayers = maxPlayers;
         }
+
+        public void Overwrite(TableData data) {
+            Title = data.Title;
+            SmallBlind = data.SmallBlind;
+            PlayerCount = data.PlayerCount;
+            MaxPlayers = data.MaxPlayers;
+        }
     }
 }
