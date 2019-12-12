@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace Lobby {
-    public class LobbyLoader : MonoBehaviour {
+    public class RefreshLobbyHandler : MonoBehaviour {
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text chipCountText;
         [SerializeField] private TMP_Text winCountText;
@@ -11,17 +11,19 @@ namespace Lobby {
         [SerializeField] private GameObject tableButton;
 
         void Start() {
-            DisplayUserInformation();
-            RefreshTableList();
-        }
-        
-        private void DisplayUserInformation() {
             usernameText.text = Session.Username;
-            chipCountText.text =  "Chips: " + Session.ChipCount;
-            winCountText.text = "Wins: " + Session.WinCount;
+            
+            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
+            Session.Writer.WriteLine(Session.Username);
+            Session.Writer.Flush();
+            
+            chipCountText.text = "Chips: " + Session.Reader.ReadLine();
+            winCountText.text = "Wins: " + Session.Reader.ReadLine();
+            
+            RefreshLobby();
         }
 
-        public void RefreshTableList() {
+        public void RefreshLobby() {
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.TableList);
 
             int tableCount = int.Parse(Session.Reader.ReadLine());

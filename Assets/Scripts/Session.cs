@@ -6,11 +6,16 @@ using System.Net.Sockets;
 /// </summary>
 public static class Session {
     public static string Username { get; set; }
-    public static string ChipCount { get; set; }
-    public static string WinCount { get; set; }
+
     public static TcpClient Client { get; set; }
     public static StreamReader Reader { get; set; }
     public static StreamWriter Writer { get; set; }
 
-    public static bool TableCreated { get; set; }
+    public static void Finish() {
+        Reader.Close();
+        Writer.Close();
+        Client.Close();
+        
+        Username = null;
+    }
 }

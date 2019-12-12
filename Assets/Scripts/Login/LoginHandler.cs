@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System;
 using System.IO;
 using System.Net.Sockets;
 using TMPro;
@@ -14,7 +14,7 @@ namespace Login {
 
         public void Login() {
             if (!IsLoginFormValid()) return;
-
+            
             string address = addressInputField.text;
             int port = int.Parse(portInputField.text);
 
@@ -33,16 +33,12 @@ namespace Login {
                 ServerResponse response = (ServerResponse) responseCode;
 
                 if (response == ServerResponse.LoginSucceeded) {
-                    StreamReader reader = new StreamReader(client.GetStream());
                     Session.Username = usernameInputField.text;
-                    Session.ChipCount = reader.ReadLine();
-                    Session.WinCount = reader.ReadLine();
                     
                     Session.Client = client;
-                    Session.Reader = reader;
+                    Session.Reader = new StreamReader(client.GetStream());
                     Session.Writer = writer;
-
-                    Trace.WriteLine("Učitavam...");
+                    
                     GetComponent<SceneLoader>().LoadScene();
                 }
                 else {
