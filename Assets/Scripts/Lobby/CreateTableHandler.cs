@@ -23,17 +23,18 @@ namespace Lobby {
             Session.Writer.WriteLine(maxPlayersInputField.text);
             Session.Writer.Flush();
 
-            int responseCode = Session.Reader.BaseStream.ReadByte();
+            int responseCode = Session.Reader.Read();
             if (responseCode == -1) {
                 DisplayMessage("Server connection error.");
                 return;
             }
 
-            ServerResponse response = (ServerResponse) responseCode;
-            if (response == ServerResponse.TableCreationSucceeded) {
+            ServerCreateTableResponse response = (ServerCreateTableResponse) responseCode;
+            
+            if (response == ServerCreateTableResponse.Success) {
                 DisplayMessage("Table \"" + tableTitleInputField.text + "\" was created!");
             }
-            else if(response == ServerResponse.TableCreationFailedTitleAlreadyTaken) {
+            else if(response == ServerCreateTableResponse.TitleTaken) {
                 DisplayMessage("Table with title \"" + tableTitleInputField.text + "\" already exists. Table was not created.");
             }
             else {

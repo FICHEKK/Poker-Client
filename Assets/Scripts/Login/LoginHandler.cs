@@ -26,12 +26,12 @@ namespace Login {
                 writer.WriteLine(passwordInputField.text);
                 writer.Flush();
 
-                int responseCode = writer.BaseStream.ReadByte();
+                int responseCode = client.GetStream().ReadByte();
                 if (responseCode == -1) return;
 
-                ServerResponse response = (ServerResponse) responseCode;
+                ServerLoginResponse response = (ServerLoginResponse) responseCode;
 
-                if (response == ServerResponse.LoginSucceeded) {
+                if (response == ServerLoginResponse.Success) {
                     Session.Username = usernameInputField.text;
                     
                     Session.Client = client;
@@ -51,19 +51,19 @@ namespace Login {
             }
         }
 
-        private void NotifyPlayer(ServerResponse response) {
+        private void NotifyPlayer(ServerLoginResponse response) {
             switch (response) {
-                case ServerResponse.LoginFailedServerIsFull:
+                case ServerLoginResponse.ServerFull:
                     DisplayMessage("Server is full.");
                     break;
-                case ServerResponse.LoginFailedUsernameNotRegistered:
-                case ServerResponse.LoginFailedWrongPassword:
+                case ServerLoginResponse.UsernameNotRegistered:
+                case ServerLoginResponse.WrongPassword:
                     DisplayMessage("Invalid username or password.");
                     break;
-                case ServerResponse.LoginFailedClientAlreadyLoggedIn:
+                case ServerLoginResponse.AlreadyLoggedIn:
                     DisplayMessage("You are already logged in.");
                     break;
-                case ServerResponse.LoginFailedClientIsBanned:
+                case ServerLoginResponse.UsernameBanned:
                     DisplayMessage("You have been banned.");
                     break;
                 default:

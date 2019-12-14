@@ -36,10 +36,10 @@ namespace Register {
                     writer.WriteLine(passwordInputField.text);
                     writer.Flush();
 
-                    int responseCode = writer.BaseStream.ReadByte();
+                    int responseCode = client.GetStream().ReadByte();
                     if (responseCode == -1) return;
                     
-                    NotifyPlayer((ServerResponse) responseCode);
+                    NotifyPlayer((ServerRegistrationResponse) responseCode);
                 }
             }
             catch (SocketException) {
@@ -47,16 +47,16 @@ namespace Register {
             }
         }
 
-        private void NotifyPlayer(ServerResponse response) {
+        private void NotifyPlayer(ServerRegistrationResponse response) {
             switch (response) {
-                case ServerResponse.RegistrationSucceeded:
+                case ServerRegistrationResponse.Success:
                     DisplayMessage("Successfully registered!", ServerSuccessColor);
                     break;
-                case ServerResponse.RegistrationFailedUsernameAlreadyTaken:
+                case ServerRegistrationResponse.UsernameTaken:
                     DisplayMessage("Username is already taken.", ServerErrorColor);
                     break;
-                case ServerResponse.RegistrationFailedIOError:
-                    DisplayMessage("Server error occurred. Please try again.", ServerErrorColor);
+                case ServerRegistrationResponse.DatabaseError:
+                    DisplayMessage("Server database error occurred. Please try again.", ServerErrorColor);
                     break;
                 default:
                     DisplayMessage("Unexpected error occurred. Please try again.", ServerErrorColor);

@@ -23,12 +23,20 @@ namespace Lobby {
                 return;
             }
 
+            if (data.PlayerCount == data.MaxPlayers) {
+                DisplayMessage("Table is full.");
+                return;
+            }
+
             GetComponent<GameObjectToggle>().ShowGameObject();
             joinTableTitleText.text = data.Title + Environment.NewLine
                                                  + "Blinds: " + data.SmallBlind + "/" + data.SmallBlind * 2 + " | "
                                                  + "Players: " + data.PlayerCount + "/" + data.MaxPlayers;
-
-            joinTableSlider.value = 0f;
+            
+            joinTableSlider.minValue = data.SmallBlind * 2 * 10;
+            joinTableSlider.maxValue = Math.Min(Session.ChipCount, data.SmallBlind * 2 * 200);
+            joinTableSlider.value = joinTableSlider.minValue;
+            
             joinTableBuyInText.text = "Buy-In: " + data.SmallBlind * MinSmallBlindsToJoin;
             joinTableButton.GetComponent<TableData>().Overwrite(data);
         }
