@@ -21,7 +21,6 @@ namespace Lobby {
             Session.Writer.WriteLine(tableTitleInputField.text);
             Session.Writer.WriteLine(smallBlindInputField.text);
             Session.Writer.WriteLine(maxPlayersInputField.text);
-            Session.Writer.Flush();
 
             int responseCode = Session.Reader.Read();
             if (responseCode == -1) {

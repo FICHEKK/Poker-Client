@@ -19,12 +19,11 @@ namespace Login {
 
             try {
                 TcpClient client = new TcpClient(address, port);
-                StreamWriter writer = new StreamWriter(client.GetStream());
+                StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
 
                 writer.BaseStream.WriteByte((byte) ClientRequest.Login);
                 writer.WriteLine(usernameInputField.text);
                 writer.WriteLine(passwordInputField.text);
-                writer.Flush();
 
                 int responseCode = client.GetStream().ReadByte();
                 if (responseCode == -1) return;

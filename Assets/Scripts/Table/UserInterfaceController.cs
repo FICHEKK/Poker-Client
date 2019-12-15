@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using Table.EventArguments;
+﻿using Table.EventArguments;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +8,9 @@ namespace Table {
         [SerializeField] private TMP_Text waitingForPlayerText;
         [SerializeField] private TMP_Text opponentUsernameText;
         [SerializeField] private TMP_Text opponentChipCountText;
-        [SerializeField] private TMP_Text chipCountText;
+        [SerializeField] private TMP_Text opponentDecisionText;
+        [SerializeField] private TMP_Text myChipCountText;
+        [SerializeField] private TMP_Text myDecisionText;
         
         [SerializeField] private Image flopCard1;
         [SerializeField] private Image flopCard2;
@@ -25,32 +25,53 @@ namespace Table {
         [SerializeField] private Image opponentCard2;
 
         private ServerConnectionHandler handler;
+        private int seatIndex;
 
         public void Start() {
             HideAllCards();
             HideOpponentInformation();
+            HideOpponentDecision();
+            HideMyDecision();
             HideWaitingForPlayerText();
             
             handler = new ServerConnectionHandler();
+            
             handler.TableEmpty += TableEmptyEventHandler;
             handler.TableNotEmpty += TableNotEmptyEventHandler;
+            
             handler.PlayerJoined += PlayerJoinedEventHandler;
             handler.PlayerLeft += PlayerLeftEventHandler;
+            
+            handler.PlayerChecked += PlayerCheckedEventHandler;
+            handler.PlayerCalled += PlayerCalledEventHandler;
+            handler.PlayerFolded += PlayerFoldedEventHandler;
+            handler.PlayerRaised += PlayerRaisedEventHandler;
+            handler.PlayerAllIn += PlayerAllInEventHandler;
+            
             handler.HandReceived += HandReceivedEventHandler;
             handler.FlopReceived += FlopReceivedEventHandler;
             handler.TurnReceived += TurnReceivedEventHandler;
             handler.RiverReceived += RiverReceivedEventHandler;
+
             handler.Handle();
         }
 
         #region Event handlers
 
-        private void TableEmptyEventHandler(object sender, EventArgs e) {
-            MainThreadExecutor.Instance.Enqueue(ShowWaitingForPlayerText);
+        private void TableEmptyEventHandler(object sender, TableEmptyEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => {
+                seatIndex = e.SeatIndex;
+                myChipCountText.text = "Chips: " + e.BuyIn;
+                ShowWaitingForPlayerText();
+            });
         }
 
         private void TableNotEmptyEventHandler(object sender, TableNotEmptyEventArgs e) {
-            MainThreadExecutor.Instance.Enqueue(() => ShowOpponentInformation(e.Username, e.ChipCount));
+            MainThreadExecutor.Instance.Enqueue(() => {
+                seatIndex = e.SeatIndex;
+                myChipCountText.text = "Chips: " + e.BuyIn;
+                ShowOpponentInformation(e.Username, e.ChipCount);
+            });
         }
         
         private void PlayerJoinedEventHandler(object sender, PlayerJoinedEventArgs e) {
@@ -62,6 +83,26 @@ namespace Table {
         
         private void PlayerLeftEventHandler(object sender, PlayerLeftEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(HideOpponentInformation);
+        }
+        
+        private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => ShowDecision(e.PlayerIndex, "Check"));
+        }
+
+        private void PlayerCalledEventHandler(object sender, PlayerCalledEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => ShowDecision(e.PlayerIndex, "Call " + e.CallAmount));
+        }
+
+        private void PlayerFoldedEventHandler(object sender, PlayerFoldedEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => ShowDecision(e.PlayerIndex, "Fold"));
+        }
+
+        private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => ShowDecision(e.PlayerIndex, "Raise " + e.RaiseAmount));
+        }
+
+        private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => ShowDecision(e.PlayerIndex, "All-In " + e.AllInAmount));
         }
         
         private void HandReceivedEventHandler(object sender, HandReceivedEventArgs e) {
@@ -152,10 +193,25 @@ namespace Table {
             opponentChipCountText.enabled = false;
         }
 
-        private void SetChipCount(int chipCount) {
-            chipCountText.text = "Chips: " + chipCount;
+        private void ShowDecision(int playerIndex, string decision) {
+            if (playerIndex == seatIndex) {
+                myDecisionText.text = decision;
+                opponentDecisionText.text = string.Empty;
+            }
+            else {
+                myDecisionText.text = string.Empty;
+                opponentDecisionText.text = decision;
+            }
         }
         
+        private void HideOpponentDecision() {
+            opponentDecisionText.text = string.Empty;
+        }
+
+        private void HideMyDecision() {
+            myDecisionText.text = string.Empty;
+        }
+
         #endregion
     }
 }

@@ -9,18 +9,21 @@ namespace Table {
     /// stream and raising events based on the data received.
     /// </summary>
     public sealed class ServerConnectionHandler {
-        public event EventHandler TableEmpty;
+        public event EventHandler<TableEmptyEventArgs> TableEmpty;
         public event EventHandler<TableNotEmptyEventArgs> TableNotEmpty;
         public event EventHandler<PlayerJoinedEventArgs> PlayerJoined;
         public event EventHandler<PlayerLeftEventArgs> PlayerLeft;
-        
+        public event EventHandler<PlayerCheckedEventArgs> PlayerChecked;
+        public event EventHandler<PlayerCalledEventArgs> PlayerCalled;
+        public event EventHandler<PlayerFoldedEventArgs> PlayerFolded;
+        public event EventHandler<PlayerRaisedEventArgs> PlayerRaised;
+        public event EventHandler<PlayerAllInEventArgs> PlayerAllIn;
         public event EventHandler<HandReceivedEventArgs> HandReceived;
         public event EventHandler<FlopReceivedEventArgs> FlopReceived;
         public event EventHandler<TurnReceivedEventArgs> TurnReceived;
         public event EventHandler<RiverReceivedEventArgs> RiverReceived;
 
         private bool handling;
-        private int seatIndex;
 
         public void Handle() {
             if (handling) return;
@@ -57,39 +60,64 @@ namespace Table {
                         OnPlayerJoined(new PlayerJoinedEventArgs(username, chipCount));
                     }
                 }
+                else if (response == ServerResponse.PlayerChecked) {
+                    int playerIndex = int.Parse(ReadLine());
+                    OnPlayerChecked(new PlayerCheckedEventArgs(playerIndex));
+                }
+                else if (response == ServerResponse.PlayerCalled) {
+                    int playerIndex = int.Parse(ReadLine());
+                    int callAmount = int.Parse(ReadLine());
+                    OnPlayerCalled(new PlayerCalledEventArgs(playerIndex, callAmount));
+                }
+                else if (response == ServerResponse.PlayerFolded) {
+                    int playerIndex = int.Parse(ReadLine());
+                    OnPlayerFolded(new PlayerFoldedEventArgs(playerIndex));
+                }
+                else if (response == ServerResponse.PlayerRaised) {
+                    int playerIndex = int.Parse(ReadLine());
+                    int raiseAmount = int.Parse(ReadLine());
+                    OnPlayerRaised(new PlayerRaisedEventArgs(playerIndex, raiseAmount));
+                }
+                else if (response == ServerResponse.PlayerAllIn) {
+                    int playerIndex = int.Parse(ReadLine());
+                    int allInAmount = int.Parse(ReadLine());
+                    OnPlayerAllIn(new PlayerAllInEventArgs(playerIndex, allInAmount));
+                }
 
                 responseCode = Session.Reader.Read();
             }
         }
 
         private void InitializeTable() {
+            int seatIndex = int.Parse(ReadLine());
+            int buyIn = int.Parse(ReadLine());
             ServerJoinTableResponse response = (ServerJoinTableResponse) Session.Reader.Read();
 
             if (response == ServerJoinTableResponse.TableEmpty) {
-                OnTableEmpty();
+                OnTableEmpty(new TableEmptyEventArgs(seatIndex, buyIn));
             }
             else if(response == ServerJoinTableResponse.TableNotEmpty) {
                 string username = ReadLine();
                 int chipCount = int.Parse(ReadLine());
-                OnTableNotEmpty(new TableNotEmptyEventArgs(username, chipCount));
+                OnTableNotEmpty(new TableNotEmptyEventArgs(seatIndex, username, chipCount, buyIn));
             }
         }
 
         private string ReadLine() => Session.Reader.ReadLine();
-
-        public void Check() => SendRequest(ClientRequest.Check);
-        public void Call()  => SendRequest(ClientRequest.Call);
-        public void Fold()  => SendRequest(ClientRequest.Fold);
-        public void Raise() => SendRequest(ClientRequest.Raise);
-        public void AllIn() => SendRequest(ClientRequest.AllIn);
-        private static void SendRequest(ClientRequest request) => Session.Client.GetStream().WriteByte((byte) request);
         
         #region Events
 
-        private void OnTableEmpty() => TableEmpty?.Invoke(this, EventArgs.Empty);
+        private void OnTableEmpty(TableEmptyEventArgs args) => TableEmpty?.Invoke(this, args);
         private void OnTableNotEmpty(TableNotEmptyEventArgs args) => TableNotEmpty?.Invoke(this, args);
+        
         private void OnPlayerJoined(PlayerJoinedEventArgs args) => PlayerJoined?.Invoke(this, args);
         private void OnPlayerLeft(PlayerLeftEventArgs args) => PlayerLeft?.Invoke(this, args);
+
+        private void OnPlayerChecked(PlayerCheckedEventArgs args) => PlayerChecked?.Invoke(this, args);
+        private void OnPlayerCalled(PlayerCalledEventArgs args) => PlayerCalled?.Invoke(this, args);
+        private void OnPlayerFolded(PlayerFoldedEventArgs args) => PlayerFolded?.Invoke(this, args);
+        private void OnPlayerRaised(PlayerRaisedEventArgs args) => PlayerRaised?.Invoke(this, args);
+        private void OnPlayerAllIn(PlayerAllInEventArgs args) => PlayerAllIn?.Invoke(this, args);
 
         private void OnHandReceived(HandReceivedEventArgs args) => HandReceived?.Invoke(this, args);
         private void OnFlopReceived(FlopReceivedEventArgs args) => FlopReceived?.Invoke(this, args);

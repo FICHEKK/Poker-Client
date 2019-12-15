@@ -15,7 +15,6 @@ namespace Lobby {
             
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
             Session.Writer.WriteLine(Session.Username);
-            Session.Writer.Flush();
 
             Session.ChipCount = int.Parse(Session.Reader.ReadLine());
             Session.WinCount = int.Parse(Session.Reader.ReadLine());

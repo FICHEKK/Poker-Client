@@ -14,7 +14,6 @@ namespace Lobby {
             Session.Writer.WriteLine(GetComponent<TableData>().Title);
             Session.Writer.WriteLine(Session.Username);
             Session.Writer.WriteLine(slider.value);
-            Session.Writer.Flush();
 
             int responseCode = Session.Reader.Read();
             if (responseCode == -1) return;

@@ -30,11 +30,10 @@ namespace Register {
 
             try {
                 using (TcpClient client = new TcpClient(address, port))
-                using (StreamWriter writer = new StreamWriter(client.GetStream())) {
+                using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true}) {
                     writer.BaseStream.WriteByte((byte) ClientRequest.Register);
                     writer.WriteLine(usernameInputField.text);
                     writer.WriteLine(passwordInputField.text);
-                    writer.Flush();
 
                     int responseCode = client.GetStream().ReadByte();
                     if (responseCode == -1) return;
