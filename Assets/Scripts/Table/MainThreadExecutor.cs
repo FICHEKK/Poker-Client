@@ -31,6 +31,7 @@ namespace Table {
 			}
 			else {
 				Instance = this;
+				DontDestroyOnLoad(gameObject);
 			}
 		}
 		

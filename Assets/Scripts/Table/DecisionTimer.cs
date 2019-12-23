@@ -8,16 +8,20 @@ namespace Table {
         [SerializeField] private TMP_Text timerText;
         [SerializeField] private UnityEvent onTimeUp;
 
+        public bool IsMyTurn { get; set; }
         private float timeLeft;
 
         private void Awake() {
-            Reset();
+            Restart();
         }
 
         void Update() {
             if (timeLeft < 0f) {
                 timerText.text = "Time's up!";
-                onTimeUp?.Invoke();
+
+                if (IsMyTurn) {
+                    onTimeUp?.Invoke();
+                }
             }
             else {
                 timeLeft -= Time.deltaTime;
@@ -25,7 +29,16 @@ namespace Table {
             }
         }
 
-        public void Reset() {
+        public void Show() {
+            enabled = true;
+        }
+
+        public void Hide() {
+            timerText.text = string.Empty;
+            enabled = false;
+        }
+
+        public void Restart() {
             timeLeft = timeToDecideInSeconds;
         }
     }

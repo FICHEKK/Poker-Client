@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Table.EventArguments;
 
@@ -102,7 +103,14 @@ namespace Table {
                     OnRequiredBetReceived(new RequiredBetReceivedEventArgs(requiredBet));
                 }
                 else if (response == ServerResponse.Showdown) {
-                    OnShowdown(new ShowdownEventArgs());
+                    int winnerCount = int.Parse(ReadLine());
+                    List<int> winnerIndexes = new List<int>();
+
+                    for (int i = 0; i < winnerCount; i++) {
+                        winnerIndexes.Add(int.Parse(ReadLine()));
+                    }
+                    
+                    OnShowdown(new ShowdownEventArgs(winnerIndexes));
                 }
                 else if (response == ServerResponse.RoundFinished) {
                     OnRoundFinished(new RoundFinishedEventArgs());

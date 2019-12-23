@@ -1,7 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Threading;
+using Table;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Register {
     public class RegistrationHandler : MonoBehaviour {
@@ -11,7 +15,9 @@ namespace Register {
         [SerializeField] private TMP_InputField addressInputField;
         [SerializeField] private TMP_InputField portInputField;
         [SerializeField] private TMP_Text messageText;
+        [SerializeField] private Button registerButton;
 
+        private static readonly Color InfoMessageColor = Color.white;
         private static readonly Color ServerSuccessColor = new Color(0f, 0.5f, 0f);
         private static readonly Color ServerErrorColor = new Color(1f, 0.5f, 0f);
         private static readonly Color FormErrorColor = Color.red;
@@ -25,24 +31,35 @@ namespace Register {
         public void Register() {
             if (!IsRegistrationFormValid()) return;
 
-            string address = addressInputField.text;
-            int port = int.Parse(portInputField.text);
+            registerButton.interactable = false;
+            DisplayMessage("Connecting to the server...", InfoMessageColor);
 
-            try {
-                using (TcpClient client = new TcpClient(address, port))
-                using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true}) {
-                    writer.BaseStream.WriteByte((byte) ClientRequest.Register);
-                    writer.WriteLine(usernameInputField.text);
-                    writer.WriteLine(passwordInputField.text);
-
-                    int responseCode = client.GetStream().ReadByte();
-                    if (responseCode == -1) return;
-                    
-                    NotifyPlayer((ServerRegistrationResponse) responseCode);
+            new Thread(() => {
+                try {
+                    RegisterOnServer(addressInputField.text, int.Parse(portInputField.text));
                 }
-            }
-            catch (SocketException) {
-                DisplayMessage("Error establishing the connection with the server.", ServerErrorColor);
+                catch (SocketException) {
+                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Error establishing the connection with the server.", ServerErrorColor));
+                }
+                catch (Exception e) {
+                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage(e.Message, ServerErrorColor));
+                }
+                
+                MainThreadExecutor.Instance.Enqueue(() => registerButton.interactable = true);
+            }).Start();
+        }
+
+        private void RegisterOnServer(string serverAddress, int serverPort) {
+            using (TcpClient client = new TcpClient(serverAddress, serverPort))
+            using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true}) {
+                writer.BaseStream.WriteByte((byte) ClientRequest.Register);
+                writer.WriteLine(usernameInputField.text);
+                writer.WriteLine(passwordInputField.text);
+
+                int responseCode = client.GetStream().ReadByte();
+                if (responseCode == -1) return;
+
+                MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer((ServerRegistrationResponse) responseCode));
             }
         }
 

@@ -5,34 +5,40 @@ using UnityEngine.UI;
 
 namespace Table {
     public class UserInterfaceController : MonoBehaviour {
-        [SerializeField] private GameObject myActionInterface;
         [SerializeField] private TMP_Text waitingForPlayerText;
         
         [SerializeField] private TMP_Text opponentUsernameText;
         [SerializeField] private TMP_Text opponentStackText;
         [SerializeField] private TMP_Text opponentActionText;
         [SerializeField] private TMP_Text opponentBetText;
-        
+
         [SerializeField] private TMP_Text myStackText;
         [SerializeField] private TMP_Text myActionText;
         [SerializeField] private TMP_Text myBetText;
 
         [SerializeField] private TMP_Text potText;
         
+        // Cards
         [SerializeField] private Image flopCard1;
         [SerializeField] private Image flopCard2;
         [SerializeField] private Image flopCard3;
         [SerializeField] private Image turnCard;
         [SerializeField] private Image riverCard;
-        
         [SerializeField] private Image handCard1;
         [SerializeField] private Image handCard2;
-
         [SerializeField] private Image opponentCard1;
         [SerializeField] private Image opponentCard2;
 
+        // Action
+        [SerializeField] private GameObject myActionInterface;
+        [SerializeField] private Button checkButton;
+        [SerializeField] private Button callButton;
+        [SerializeField] private Button foldButton;
+        [SerializeField] private Button raiseButton;
+        [SerializeField] private Button allInButton;
         [SerializeField] private Slider raiseSlider;
 
+        private DecisionTimer timer;
         private ServerConnectionHandler handler;
         
         // General table information used by the UI controller
@@ -43,7 +49,10 @@ namespace Table {
         
         public int MyCurrentBet { get; private set; }
 
-        public void Start() {
+        private void Start() {
+            timer = GetComponent<DecisionTimer>();
+            timer.Hide();
+            
             HideAllCards();
             HideOpponentInformation();
             HideOpponentAction();
@@ -117,21 +126,31 @@ namespace Table {
                 HideWaitingForPlayerText();
             });
         }
-        
-        private void PlayerLeftEventHandler(object sender, PlayerLeftEventArgs e) =>
+
+        private void PlayerLeftEventHandler(object sender, PlayerLeftEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(HideOpponentInformation);
-            
-        private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => myActionInterface.SetActive(e.Index == SeatIndex));
-            
-        private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e) =>
+        }
+
+        private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) {
+            MainThreadExecutor.Instance.Enqueue(() => {
+                timer.Show();
+                timer.Restart();
+                timer.IsMyTurn = e.Index == SeatIndex;
+                myActionInterface.SetActive(e.Index == SeatIndex);
+            });
+        }
+
+        private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "Check"));
+        }
 
-        private void PlayerCalledEventHandler(object sender, PlayerCalledEventArgs e) =>
+        private void PlayerCalledEventHandler(object sender, PlayerCalledEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "Call " + e.CallAmount));
+        }
 
-        private void PlayerFoldedEventHandler(object sender, PlayerFoldedEventArgs e) =>
+        private void PlayerFoldedEventHandler(object sender, PlayerFoldedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "Fold"));
+        }
 
         private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
@@ -139,10 +158,10 @@ namespace Table {
                 ShowAction(e.PlayerIndex, "Raise " + e.RaiseAmount);
             });
         }
-            
-
-        private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) =>
+        
+        private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "All-In " + e.AllInAmount));
+        }
 
         private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
@@ -162,10 +181,14 @@ namespace Table {
         private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
                 if (e.RequiredBet == MyCurrentBet) {
-                    Debug.Log("You don't have to bet anything.");
+                    checkButton.interactable = true;
+                    callButton.interactable = false;
+                    callButton.GetComponentInChildren<TMP_Text>().text = "Call";
                 }
                 else {
-                    Debug.Log("Call " + (e.RequiredBet - MyCurrentBet) + "?");
+                    checkButton.interactable = false;
+                    callButton.interactable = true;
+                    callButton.GetComponentInChildren<TMP_Text>().text = "Call " + (e.RequiredBet - MyCurrentBet);
                 }
             });
         }

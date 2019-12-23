@@ -1,7 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Threading;
+using Table;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Login {
     public class LoginHandler : MonoBehaviour {
@@ -10,44 +14,60 @@ namespace Login {
         [SerializeField] private TMP_InputField addressInputField;
         [SerializeField] private TMP_InputField portInputField;
         [SerializeField] private TMP_Text messageText;
+        [SerializeField] private Button loginButton;
 
         public void Login() {
             if (!IsLoginFormValid()) return;
+
+            loginButton.interactable = false;
             
             string address = addressInputField.text;
             int port = int.Parse(portInputField.text);
 
-            try {
-                TcpClient client = new TcpClient(address, port);
-                StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
+            new Thread(() => {
+                try {
+                    TcpClient client = new TcpClient(address, port);
+                    StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
 
-                writer.BaseStream.WriteByte((byte) ClientRequest.Login);
-                writer.WriteLine(usernameInputField.text);
-                writer.WriteLine(passwordInputField.text);
+                    writer.BaseStream.WriteByte((byte) ClientRequest.Login);
+                    writer.WriteLine(usernameInputField.text);
+                    writer.WriteLine(passwordInputField.text);
 
-                int responseCode = client.GetStream().ReadByte();
-                if (responseCode == -1) return;
+                    int responseCode = client.GetStream().ReadByte();
+                    if (responseCode == -1) return;
 
-                ServerLoginResponse response = (ServerLoginResponse) responseCode;
+                    ServerLoginResponse response = (ServerLoginResponse) responseCode;
 
-                if (response == ServerLoginResponse.Success) {
-                    Session.Username = usernameInputField.text;
-                    
-                    Session.Client = client;
-                    Session.Reader = new StreamReader(client.GetStream());
-                    Session.Writer = writer;
-                    
-                    GetComponent<SceneLoader>().LoadScene();
+                    if (response == ServerLoginResponse.Success) {
+                        Session.Username = usernameInputField.text;
+
+                        Session.Client = client;
+                        Session.Reader = new StreamReader(client.GetStream());
+                        Session.Writer = writer;
+
+                        MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
+                    }
+                    else {
+                        writer.Close();
+                        client.Close();
+                        MainThreadExecutor.Instance.Enqueue(() => {
+                            NotifyPlayer(response);
+                        });
+                    }
                 }
-                else {
-                    writer.Close();
-                    client.Close();
-                    NotifyPlayer(response);
+                catch (SocketException) {
+                    MainThreadExecutor.Instance.Enqueue(() => {
+                        DisplayMessage("Error establishing the connection with the server.");
+                    });
                 }
-            }
-            catch (SocketException) {
-                DisplayMessage("Error establishing the connection with the server.");
-            }
+                catch (Exception e) {
+                    MainThreadExecutor.Instance.Enqueue(() => {
+                        DisplayMessage(e.Message);
+                    });
+                }
+                
+                MainThreadExecutor.Instance.Enqueue(() => loginButton.interactable = true);
+            }).Start();
         }
 
         private void NotifyPlayer(ServerLoginResponse response) {
