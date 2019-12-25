@@ -22,14 +22,19 @@ namespace Login {
             loginButton.interactable = false;
             DisplayMessage("Connecting to the server...");
 
+            string username = usernameInputField.text;
+            string password = passwordInputField.text;
+            string address = addressInputField.text;
+            int port = int.Parse(portInputField.text);
+
             new Thread(() => {
                 try {
-                    TcpClient client = new TcpClient(addressInputField.text, int.Parse(portInputField.text));
+                    TcpClient client = new TcpClient(address, port);
                     StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
 
                     writer.BaseStream.WriteByte((byte) ClientRequest.Login);
-                    writer.WriteLine(usernameInputField.text);
-                    writer.WriteLine(passwordInputField.text);
+                    writer.WriteLine(username);
+                    writer.WriteLine(password);
 
                     int responseCode = client.GetStream().ReadByte();
                     if (responseCode == -1) return;
@@ -37,7 +42,7 @@ namespace Login {
                     ServerLoginResponse response = (ServerLoginResponse) responseCode;
 
                     if (response == ServerLoginResponse.Success) {
-                        Session.Username = usernameInputField.text;
+                        Session.Username = username;
                         Session.Client = client;
                         Session.Reader = new StreamReader(client.GetStream());
                         Session.Writer = writer;

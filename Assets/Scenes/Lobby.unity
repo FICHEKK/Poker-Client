@@ -569,17 +569,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1577261314}
-        m_MethodName: RefreshTableList
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &181296265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -628,6 +617,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d162b0d1a562bf14e975d5b3784f7d33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  createTableButton: {fileID: 181296264}
   tableTitleInputField: {fileID: 7742216073111976264}
   smallBlindInputField: {fileID: 1573491869}
   maxPlayersInputField: {fileID: 1715024653}
@@ -2558,6 +2548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47f616802a1a7124c8e7181142396001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  joinTableButton: {fileID: 1052782531}
   slider: {fileID: 1451871734}
   messageText: {fileID: 2094103560}
 --- !u!114 &1052782535
