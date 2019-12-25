@@ -1,9 +1,11 @@
-﻿using TMPro;
+﻿using System.Threading;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Lobby {
     public class RefreshLobbyHandler : MonoBehaviour {
+        [SerializeField] private Button refreshButton;
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text chipCountText;
         [SerializeField] private TMP_Text winCountText;
@@ -11,40 +13,40 @@ namespace Lobby {
         [SerializeField] private GameObject tableButton;
 
         void Start() {
-            usernameText.text = Session.Username;
-            
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
             Session.Writer.WriteLine(Session.Username);
-
-            Session.ChipCount = int.Parse(Session.Reader.ReadLine());
-            Session.WinCount = int.Parse(Session.Reader.ReadLine());
-
+            Session.ChipCount = ReadInt();
+            Session.WinCount = ReadInt();
+            
+            usernameText.text = Session.Username;
             chipCountText.text = "Chips: " + Session.ChipCount;
             winCountText.text = "Wins: " + Session.WinCount;
             
-            RefreshLobby();
+            RefreshTableList();
         }
 
-        public void RefreshLobby() {
-            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.TableList);
+        public void RefreshTableList() {
+            HideTableButtons();
+            refreshButton.interactable = false;
 
-            int tableCount = int.Parse(Session.Reader.ReadLine());
+            new Thread(() => {
+                Session.Writer.BaseStream.WriteByte((byte) ClientRequest.TableList);
+                int tableCount = ReadInt();
 
-            foreach (Transform t in grid.transform) {
-                t.gameObject.SetActive(false);
-            }
+                for (int i = 0; i < tableCount; i++) {
+                    ShowTableButton(i, ReadLine(), ReadInt(), ReadInt(), ReadInt());
+                }
+                
+                MainThreadExecutor.Instance.Enqueue(() => refreshButton.interactable = true);
+            }).Start();
+        }
 
-            for (int i = 0; i < tableCount; i++) {
-                string title = Session.Reader.ReadLine();
-                int smallBlind = int.Parse(Session.Reader.ReadLine());
-                int bigBlind = smallBlind * 2;
-                int playerCount = int.Parse(Session.Reader.ReadLine());
-                int maxPlayers = int.Parse(Session.Reader.ReadLine());
-
+        private void ShowTableButton(int index, string title, int smallBlind, int playerCount, int maxPlayers) {
+            MainThreadExecutor.Instance.Enqueue(() => {
                 GameObject button;
                 
-                if (i < grid.transform.childCount) {
-                    button = grid.transform.GetChild(i).gameObject;
+                if (index < grid.transform.childCount) {
+                    button = grid.transform.GetChild(index).gameObject;
                     button.SetActive(true);
                 }
                 else {
@@ -52,14 +54,23 @@ namespace Lobby {
                 }
                 
                 button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text =
-                    title + " | Blinds: " + smallBlind + "/" + bigBlind + " | Players: " + playerCount + "/" + maxPlayers;
+                    title + " | Blinds: " + smallBlind + "/" + smallBlind * 2 + " | Players: " + playerCount + "/" + maxPlayers;
                 
                 TableData data = button.GetComponent<TableData>();
                 data.Title = title;
                 data.SmallBlind = smallBlind;
                 data.PlayerCount = playerCount;
                 data.MaxPlayers = maxPlayers;
+            });
+        }
+        
+        private void HideTableButtons() {
+            foreach (Transform t in grid.transform) {
+                t.gameObject.SetActive(false);
             }
         }
+
+        private int ReadInt() => int.Parse(ReadLine());
+        private string ReadLine() => Session.Reader.ReadLine();
     }
 }

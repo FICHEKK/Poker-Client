@@ -570,7 +570,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1577261314}
-        m_MethodName: RefreshLobby
+        m_MethodName: RefreshTableList
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2476,10 +2476,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.627451, g: 0, b: 0, a: 1}
+    m_NormalColor: {r: 0.87058824, g: 0, b: 0, a: 1}
     m_HighlightedColor: {r: 0.627451, g: 0, b: 0, a: 1}
     m_PressedColor: {r: 0.39215687, g: 0, b: 0, a: 1}
-    m_SelectedColor: {r: 0.627451, g: 0, b: 0, a: 1}
+    m_SelectedColor: {r: 0.8705883, g: 0, b: 0, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0
@@ -3225,7 +3225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.627451, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.5019608, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -3298,7 +3298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.627451, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.8679245, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -4128,6 +4128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6d3211f71b58cb4d89b2cbfffbbb0d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  refreshButton: {fileID: 1577261315}
   usernameText: {fileID: 134930923}
   chipCountText: {fileID: 1133000229}
   winCountText: {fileID: 627234146}
@@ -4177,7 +4178,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1577261314}
-        m_MethodName: RefreshLobby
+        m_MethodName: RefreshTableList
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4571,7 +4572,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6603774, g: 0.3626027, b: 0, a: 1}
+  m_Color: {r: 0.8962264, g: 0.49079064, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:

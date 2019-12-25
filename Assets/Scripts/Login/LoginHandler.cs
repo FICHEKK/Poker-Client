@@ -2,12 +2,12 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Table;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Login {
+    
     public class LoginHandler : MonoBehaviour {
         [SerializeField] private TMP_InputField usernameInputField;
         [SerializeField] private TMP_InputField passwordInputField;
@@ -20,13 +20,11 @@ namespace Login {
             if (!IsLoginFormValid()) return;
 
             loginButton.interactable = false;
-            
-            string address = addressInputField.text;
-            int port = int.Parse(portInputField.text);
+            DisplayMessage("Connecting to the server...");
 
             new Thread(() => {
                 try {
-                    TcpClient client = new TcpClient(address, port);
+                    TcpClient client = new TcpClient(addressInputField.text, int.Parse(portInputField.text));
                     StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
 
                     writer.BaseStream.WriteByte((byte) ClientRequest.Login);
@@ -40,7 +38,6 @@ namespace Login {
 
                     if (response == ServerLoginResponse.Success) {
                         Session.Username = usernameInputField.text;
-
                         Session.Client = client;
                         Session.Reader = new StreamReader(client.GetStream());
                         Session.Writer = writer;
@@ -50,20 +47,14 @@ namespace Login {
                     else {
                         writer.Close();
                         client.Close();
-                        MainThreadExecutor.Instance.Enqueue(() => {
-                            NotifyPlayer(response);
-                        });
+                        MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer(response));
                     }
                 }
                 catch (SocketException) {
-                    MainThreadExecutor.Instance.Enqueue(() => {
-                        DisplayMessage("Error establishing the connection with the server.");
-                    });
+                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Error establishing the connection with the server."));
                 }
                 catch (Exception e) {
-                    MainThreadExecutor.Instance.Enqueue(() => {
-                        DisplayMessage(e.Message);
-                    });
+                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage(e.Message));
                 }
                 
                 MainThreadExecutor.Instance.Enqueue(() => loginButton.interactable = true);

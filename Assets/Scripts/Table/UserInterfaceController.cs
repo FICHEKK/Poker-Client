@@ -314,25 +314,21 @@ namespace Table {
         
         public void Check() {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.Check);
-            Session.Writer.WriteLine(Session.Username);
         }
         
         public void Call() {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.Call);
-            Session.Writer.WriteLine(Session.Username);
-            
-            //TODO add calling
+
+            //TODO add calling (call amount)
         }
         
         public void Fold() {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.Fold);
-            Session.Writer.WriteLine(Session.Username);
         }
         
         public void Raise() {
             bool isAllIn = (int) raiseSlider.value == (int) raiseSlider.maxValue;
             Session.Client.GetStream().WriteByte((byte) (isAllIn ? ClientRequest.AllIn : ClientRequest.Raise));
-            Session.Writer.WriteLine(Session.Username);
             Session.Writer.WriteLine(raiseSlider.value);
         }
 

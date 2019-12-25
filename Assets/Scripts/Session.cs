@@ -1,9 +1,7 @@
 ﻿using System.IO;
 using System.Net.Sockets;
 
-/// <summary>
-/// Holds the important data between Unity scene changes.
-/// </summary>
+/// <summary> Holds the important data between Unity scene changes. </summary>
 public static class Session {
     public static string Username { get; set; }
     public static int ChipCount { get; set; }

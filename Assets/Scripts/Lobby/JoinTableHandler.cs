@@ -12,7 +12,6 @@ namespace Lobby {
 
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.JoinTable);
             Session.Writer.WriteLine(GetComponent<TableData>().Title);
-            Session.Writer.WriteLine(Session.Username);
             Session.Writer.WriteLine(slider.value);
 
             int responseCode = Session.Reader.Read();

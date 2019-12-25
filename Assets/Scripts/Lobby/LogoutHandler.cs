@@ -1,13 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using UnityEngine;
 
 namespace Lobby {
     public class LogoutHandler : MonoBehaviour {
         public void Logout() {
-            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.Logout);
-            Session.Writer.WriteLine(Session.Username);
-            Session.Finish();
-            
-            GetComponent<SceneLoader>().LoadScene();
+            new Thread(() => {
+                Session.Writer.BaseStream.WriteByte((byte) ClientRequest.Logout);
+                Session.Finish();
+                
+                MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
+            }).Start();
         }
     }
 }

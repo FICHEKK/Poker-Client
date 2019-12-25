@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Table;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,7 +35,10 @@ namespace Register {
 
             new Thread(() => {
                 try {
-                    RegisterOnServer(addressInputField.text, int.Parse(portInputField.text));
+                    int responseCode = RegisterOnServer(addressInputField.text, int.Parse(portInputField.text));
+                    if (responseCode == -1) return;
+
+                    MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer((ServerRegistrationResponse) responseCode));
                 }
                 catch (SocketException) {
                     MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Error establishing the connection with the server.", ServerErrorColor));
@@ -49,17 +51,14 @@ namespace Register {
             }).Start();
         }
 
-        private void RegisterOnServer(string serverAddress, int serverPort) {
+        private int RegisterOnServer(string serverAddress, int serverPort) {
             using (TcpClient client = new TcpClient(serverAddress, serverPort))
             using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true}) {
                 writer.BaseStream.WriteByte((byte) ClientRequest.Register);
                 writer.WriteLine(usernameInputField.text);
                 writer.WriteLine(passwordInputField.text);
 
-                int responseCode = client.GetStream().ReadByte();
-                if (responseCode == -1) return;
-
-                MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer((ServerRegistrationResponse) responseCode));
+                return client.GetStream().ReadByte();
             }
         }
 
