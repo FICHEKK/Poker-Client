@@ -13,16 +13,20 @@ namespace Lobby {
         [SerializeField] private GameObject tableButton;
 
         void Start() {
-            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
-            Session.Writer.WriteLine(Session.Username);
-            Session.ChipCount = ReadInt();
-            Session.WinCount = ReadInt();
+            new Thread(() => {
+                Session.Writer.BaseStream.WriteByte((byte) ClientRequest.ClientData);
+                Session.Writer.WriteLine(Session.Username);
+                Session.ChipCount = ReadInt();
+                Session.WinCount = ReadInt();
+                
+                MainThreadExecutor.Instance.Enqueue(() => {
+                    usernameText.text = Session.Username;
+                    chipCountText.text = "Chips: " + Session.ChipCount;
+                    winCountText.text = "Wins: " + Session.WinCount;
             
-            usernameText.text = Session.Username;
-            chipCountText.text = "Chips: " + Session.ChipCount;
-            winCountText.text = "Wins: " + Session.WinCount;
-            
-            RefreshTableList();
+                    RefreshTableList();
+                });
+            }).Start();
         }
 
         public void RefreshTableList() {

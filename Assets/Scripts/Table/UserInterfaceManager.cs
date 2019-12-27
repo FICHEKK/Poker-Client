@@ -1,10 +1,12 @@
-﻿using Table.EventArguments;
+﻿using System.Threading;
+using Table.EventArguments;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Table {
-    public class UserInterfaceController : MonoBehaviour {
+    
+    public class UserInterfaceManager : MonoBehaviour {
         [SerializeField] private TMP_Text waitingForPlayerText;
         
         [SerializeField] private TMP_Text opponentUsernameText;
@@ -15,7 +17,6 @@ namespace Table {
         [SerializeField] private TMP_Text myStackText;
         [SerializeField] private TMP_Text myActionText;
         [SerializeField] private TMP_Text myBetText;
-
         [SerializeField] private TMP_Text potText;
         
         // Cards
@@ -33,31 +34,32 @@ namespace Table {
         [SerializeField] private GameObject myActionInterface;
         [SerializeField] private Button checkButton;
         [SerializeField] private Button callButton;
-        [SerializeField] private Button foldButton;
-        [SerializeField] private Button raiseButton;
-        [SerializeField] private Button allInButton;
         [SerializeField] private Slider raiseSlider;
-
-        private DecisionTimer timer;
+        
         private ServerConnectionHandler handler;
         
         // General table information used by the UI controller
-        public int SmallBlind { get; private set; }
-        public int SeatIndex { get; private set; }
-        public int MyStack { get; private set; }
-        public int OpponentStack { get; private set; }
+        private int SmallBlind { get; set; }
+        private int SeatIndex { get; set; }
         
-        public int MyCurrentBet { get; private set; }
+        // Stack information
+        private int MyStack { get; set; }
+        private int OpponentStack { get; set; }
+        
+        // Bet and pot information
+        private int MyCurrentBet { get; set; }
+        private int OpponentCurrentBet { get; set; }
+        private int CurrentPot { get; set; }
+
+        private int RequiredCallAmount { get; set; }
 
         private void Start() {
-            timer = GetComponent<DecisionTimer>();
-            timer.Hide();
-            
             HideAllCards();
             HideOpponentInformation();
             HideOpponentAction();
             HideAllActions();
             HideAllBets();
+            HidePot();
             HideWaitingForPlayerText();
             
             handler = new ServerConnectionHandler();
@@ -82,13 +84,15 @@ namespace Table {
             handler.TurnReceived += TurnReceivedEventHandler;
             handler.Showdown += ShowdownEventHandler;
             handler.RiverReceived += RiverReceivedEventHandler;
-
+            
             handler.RoundFinished += RoundFinishedEventHandler;
 
             handler.Handle();
         }
 
-        #region Event handlers
+        //----------------------------------------------------------------
+        //                      Event handlers
+        //----------------------------------------------------------------
 
         private void TableEmptyEventHandler(object sender, TableEmptyEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
@@ -97,10 +101,8 @@ namespace Table {
                 SmallBlind = e.SmallBlind;
                 myStackText.text = StringifyStack(e.BuyIn);
                 
-                raiseSlider.minValue = SmallBlind * 2;
-                raiseSlider.maxValue = MyStack;
-
                 ShowWaitingForPlayerText();
+                SetSliderRange(SmallBlind * 2, MyStack);
             });
         }
 
@@ -110,12 +112,11 @@ namespace Table {
                 MyStack = e.BuyIn;
                 SmallBlind = e.SmallBlind;
                 myStackText.text = StringifyStack(e.BuyIn);
-                
-                raiseSlider.minValue = SmallBlind * 2;
-                raiseSlider.maxValue = MyStack;
 
                 OpponentStack = e.OpponentStack;
                 ShowOpponentInformation(e.OpponentUsername, e.OpponentStack);
+                ShowPot();
+                SetSliderRange(SmallBlind * 2, MyStack);
             });
         }
 
@@ -123,6 +124,7 @@ namespace Table {
             MainThreadExecutor.Instance.Enqueue(() => {
                 OpponentStack = e.Stack;
                 ShowOpponentInformation(e.Username, e.Stack);
+                ShowPot();
                 HideWaitingForPlayerText();
             });
         }
@@ -133,9 +135,6 @@ namespace Table {
 
         private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
-                timer.Show();
-                timer.Restart();
-                timer.IsMyTurn = e.Index == SeatIndex;
                 myActionInterface.SetActive(e.Index == SeatIndex);
             });
         }
@@ -145,7 +144,10 @@ namespace Table {
         }
 
         private void PlayerCalledEventHandler(object sender, PlayerCalledEventArgs e) {
-            MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "Call " + e.CallAmount));
+            MainThreadExecutor.Instance.Enqueue(() => {
+                ShowAction(e.PlayerIndex, "Call");
+                PlaceChipsOnTable(e.PlayerIndex, e.CallAmount);
+            });
         }
 
         private void PlayerFoldedEventHandler(object sender, PlayerFoldedEventArgs e) {
@@ -154,27 +156,22 @@ namespace Table {
 
         private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
-                UpdateStack(e.PlayerIndex, -e.RaiseAmount);
-                ShowAction(e.PlayerIndex, "Raise " + e.RaiseAmount);
+                ShowAction(e.PlayerIndex, "Raise");
+                PlaceChipsOnTable(e.PlayerIndex, e.RaiseAmount);
             });
         }
         
         private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) {
-            MainThreadExecutor.Instance.Enqueue(() => ShowAction(e.PlayerIndex, "All-In " + e.AllInAmount));
+            MainThreadExecutor.Instance.Enqueue(() => {
+                ShowAction(e.PlayerIndex, "All-In");
+                PlaceChipsOnTable(e.PlayerIndex, e.AllInAmount);
+            });
         }
 
         private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
-                if (SeatIndex == e.SmallBlindIndex) {
-                    myBetText.text = SmallBlind.ToString();
-                    opponentBetText.text = (SmallBlind * 2).ToString();
-                    MyCurrentBet = SmallBlind;
-                }
-                else {
-                    myBetText.text = (SmallBlind * 2).ToString();
-                    opponentBetText.text = SmallBlind.ToString();
-                    MyCurrentBet = SmallBlind * 2;
-                }
+                PlaceChipsOnTable(e.SmallBlindIndex, SmallBlind);
+                PlaceChipsOnTable(e.BigBlindIndex, SmallBlind * 2);
             });
         }
         
@@ -188,14 +185,18 @@ namespace Table {
                 else {
                     checkButton.interactable = false;
                     callButton.interactable = true;
-                    callButton.GetComponentInChildren<TMP_Text>().text = "Call " + (e.RequiredBet - MyCurrentBet);
+
+                    RequiredCallAmount = e.RequiredBet - MyCurrentBet;
+                    callButton.GetComponentInChildren<TMP_Text>().text = "Call " + RequiredCallAmount;
+
+                    SetSliderRange(RequiredCallAmount * 2, MyStack);
                 }
             });
         }
 
-        #endregion
-        
-        #region Round phases
+        //----------------------------------------------------------------
+        //                      Round phase handlers
+        //----------------------------------------------------------------
         
         private void HandReceivedEventHandler(object sender, HandReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
@@ -211,6 +212,7 @@ namespace Table {
         
         private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
+                OnPhaseChange();
                 flopCard1.enabled = true;
                 flopCard2.enabled = true;
                 flopCard3.enabled = true;
@@ -222,6 +224,7 @@ namespace Table {
         
         private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
+                OnPhaseChange();
                 turnCard.enabled = true;
                 turnCard.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card);
             });
@@ -229,27 +232,102 @@ namespace Table {
         
         private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
+                OnPhaseChange();
                 riverCard.enabled = true;
                 riverCard.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card);
             });
         }
         
         private void ShowdownEventHandler(object sender, ShowdownEventArgs e) {
-            MainThreadExecutor.Instance.Enqueue(() => myActionInterface.SetActive(false));
+            MainThreadExecutor.Instance.Enqueue(() => {
+                OnPhaseChange();
+
+                if (e.WinnerIndexes.Count == 1) {
+                    int winnerIndex = e.WinnerIndexes[0];
+                    UpdateStack(winnerIndex, +CurrentPot);
+                }
+                else {
+                    UpdateStack(0, +CurrentPot / 2);
+                    UpdateStack(1, +CurrentPot / 2);
+                }
+                
+                myActionInterface.SetActive(false);
+            });
         }
         
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e) {
             MainThreadExecutor.Instance.Enqueue(() => {
+                CurrentPot = 0;
+                AddBetsToPot();
+
                 HideAllCards();
                 HideAllBets();
                 HideAllActions();
             });
         }
-        
-        #endregion
-        
-        #region Showing UI
 
+        //----------------------------------------------------------------
+        //                      Chip manipulation
+        //----------------------------------------------------------------
+        
+        private void PlaceChipsOnTable(int playerIndex, int amount) {
+            UpdateStack(playerIndex, -amount);
+            
+            if (playerIndex == SeatIndex) {
+                MyCurrentBet += amount;
+                myBetText.text = MyCurrentBet + " chips";
+            }
+            else {
+                OpponentCurrentBet += amount;
+                opponentBetText.text = OpponentCurrentBet + " chips";
+            }
+        }
+        
+        private void UpdateStack(int playerIndex, int stackDelta) {
+            if (playerIndex == SeatIndex) {
+                MyStack += stackDelta;
+                myStackText.text = StringifyStack(MyStack);
+            }
+            else {
+                OpponentStack += stackDelta;
+                opponentStackText.text = StringifyStack(OpponentStack);
+            }
+        }
+        
+        private void AddBetsToPot() {
+            CurrentPot += MyCurrentBet + OpponentCurrentBet;
+            MyCurrentBet = 0;
+            OpponentCurrentBet = 0;
+
+            potText.text = "Pot: " + CurrentPot;
+            myBetText.text = string.Empty;
+            opponentBetText.text = string.Empty;
+        }
+
+        //----------------------------------------------------------------
+        //                      Helper methods
+        //----------------------------------------------------------------
+        
+        private string StringifyStack(int stack) {
+            return "Chips: " + stack;
+        }
+        
+        private void SetSliderRange(int minValue, int maxValue) {
+            raiseSlider.minValue = minValue;
+            raiseSlider.maxValue = maxValue;
+        }
+        
+        private void OnPhaseChange() {
+            HideAllActions();
+            AddBetsToPot();
+            SetSliderRange(SmallBlind * 2, MyStack);
+            raiseSlider.value = raiseSlider.minValue;
+        }
+        
+        //----------------------------------------------------------------
+        //                         Showing UI
+        //----------------------------------------------------------------
+        
         private void ShowWaitingForPlayerText() {
             waitingForPlayerText.text = "Waiting for a player to join...";
         }
@@ -268,9 +346,13 @@ namespace Table {
             }
         }
 
-        #endregion
-
-        #region Hiding UI
+        private void ShowPot() {
+            potText.text = "Pot: 0";
+        }
+        
+        //----------------------------------------------------------------
+        //                         Hiding UI
+        //----------------------------------------------------------------
 
         private void HideAllCards() {
             handCard1.enabled = false;
@@ -308,58 +390,45 @@ namespace Table {
             opponentBetText.text = string.Empty;
         }
 
-        #endregion
-
-        #region Button handlers
+        private void HidePot() {
+            potText.text = string.Empty;
+        }
+        
+        //----------------------------------------------------------------
+        //                      Button handlers
+        //----------------------------------------------------------------
         
         public void Check() {
-            Session.Client.GetStream().WriteByte((byte) ClientRequest.Check);
+            new Thread(() => {
+                Session.Client.GetStream().WriteByte((byte) ClientRequest.Check);
+            }).Start();
         }
         
         public void Call() {
-            Session.Client.GetStream().WriteByte((byte) ClientRequest.Call);
-
-            //TODO add calling (call amount)
+            new Thread(() => {
+                Session.Client.GetStream().WriteByte((byte) ClientRequest.Call);
+                Session.Writer.WriteLine(RequiredCallAmount.ToString());
+            }).Start();
         }
         
         public void Fold() {
-            Session.Client.GetStream().WriteByte((byte) ClientRequest.Fold);
+            new Thread(() => {
+                Session.Client.GetStream().WriteByte((byte) ClientRequest.Fold);
+            }).Start();
         }
         
         public void Raise() {
             bool isAllIn = (int) raiseSlider.value == (int) raiseSlider.maxValue;
-            Session.Client.GetStream().WriteByte((byte) (isAllIn ? ClientRequest.AllIn : ClientRequest.Raise));
-            Session.Writer.WriteLine(raiseSlider.value);
+            float raiseAmount = raiseSlider.value;
+            
+            new Thread(() => {
+                Session.Client.GetStream().WriteByte((byte) (isAllIn ? ClientRequest.AllIn : ClientRequest.Raise));
+                Session.Writer.WriteLine(raiseAmount);
+            }).Start();
         }
 
         public void AllIn() {
             raiseSlider.value = raiseSlider.maxValue;
-        }
-
-        #endregion
-        
-        /// <summary>
-        /// Updates the stack value of the specified player.
-        /// </summary>
-        /// <param name="playerIndex">Index of the player whose stack is being updated.</param>
-        /// <param name="stackDelta">
-        /// The difference in stack.
-        /// If placing blinds, calling or raising, this number is negative.
-        /// If winning a round, this number is positive.
-        /// </param>
-        private void UpdateStack(int playerIndex, int stackDelta) {
-            if (playerIndex == SeatIndex) {
-                MyStack += stackDelta;
-                myStackText.text = StringifyStack(MyStack);
-            }
-            else {
-                OpponentStack += stackDelta;
-                opponentStackText.text = StringifyStack(OpponentStack);
-            }
-        }
-
-        private string StringifyStack(int stack) {
-            return "Chips: " + stack;
         }
     }
 }

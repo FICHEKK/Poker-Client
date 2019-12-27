@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Table.EventArguments;
 
@@ -45,75 +46,64 @@ namespace Table {
 
             while (responseCode != -1) {
                 ServerResponse response = (ServerResponse) responseCode;
+                Trace.WriteLine(responseCode + " -> " + response);
 
                 if (response == ServerResponse.Hand) {
-                    OnHandReceived(new HandReceivedEventArgs(ReadLine(), ReadLine()));
+                    HandReceived?.Invoke(this, new HandReceivedEventArgs(ReadLine(), ReadLine()));
                 }
                 else if (response == ServerResponse.Flop) {
-                    OnFlopReceived(new FlopReceivedEventArgs(ReadLine(), ReadLine(), ReadLine()));
+                    FlopReceived?.Invoke(this, new FlopReceivedEventArgs(ReadLine(), ReadLine(), ReadLine()));
                 }
                 else if (response == ServerResponse.Turn) {
-                    OnTurnReceived(new TurnReceivedEventArgs(ReadLine()));
+                    TurnReceived?.Invoke(this, new TurnReceivedEventArgs(ReadLine()));
                 }
                 else if (response == ServerResponse.River) {
-                    OnRiverReceived(new RiverReceivedEventArgs(ReadLine()));
+                    RiverReceived?.Invoke(this, new RiverReceivedEventArgs(ReadLine()));
                 }
                 else if (response == ServerResponse.PlayerJoined) {
                     string username = ReadLine();
-                    int chipCount = int.Parse(ReadLine());
+                    int chipCount = ReadInt();
 
                     if (username != Session.Username) {
-                        OnPlayerJoined(new PlayerJoinedEventArgs(username, chipCount));
+                        PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs(username, chipCount));
                     }
                 }
                 else if (response == ServerResponse.PlayerChecked) {
-                    int playerIndex = int.Parse(ReadLine());
-                    OnPlayerChecked(new PlayerCheckedEventArgs(playerIndex));
+                    PlayerChecked?.Invoke(this, new PlayerCheckedEventArgs(ReadInt()));
                 }
                 else if (response == ServerResponse.PlayerCalled) {
-                    int playerIndex = int.Parse(ReadLine());
-                    int callAmount = int.Parse(ReadLine());
-                    OnPlayerCalled(new PlayerCalledEventArgs(playerIndex, callAmount));
+                    PlayerCalled?.Invoke(this, new PlayerCalledEventArgs(ReadInt(), ReadInt()));
                 }
                 else if (response == ServerResponse.PlayerFolded) {
-                    int playerIndex = int.Parse(ReadLine());
-                    OnPlayerFolded(new PlayerFoldedEventArgs(playerIndex));
+                    PlayerFolded?.Invoke(this, new PlayerFoldedEventArgs(ReadInt()));
                 }
                 else if (response == ServerResponse.PlayerRaised) {
-                    int playerIndex = int.Parse(ReadLine());
-                    int raiseAmount = int.Parse(ReadLine());
-                    OnPlayerRaised(new PlayerRaisedEventArgs(playerIndex, raiseAmount));
+                    PlayerRaised?.Invoke(this, new PlayerRaisedEventArgs(ReadInt(), ReadInt()));
                 }
                 else if (response == ServerResponse.PlayerAllIn) {
-                    int playerIndex = int.Parse(ReadLine());
-                    int allInAmount = int.Parse(ReadLine());
-                    OnPlayerAllIn(new PlayerAllInEventArgs(playerIndex, allInAmount));
+                    PlayerAllIn?.Invoke(this, new PlayerAllInEventArgs(ReadInt(), ReadInt()));
                 }
                 else if (response == ServerResponse.PlayerIndex) {
-                    int playerIndex = int.Parse(ReadLine());
-                    OnPlayerIndex(new PlayerIndexEventArgs(playerIndex));
+                    PlayerIndex?.Invoke(this, new PlayerIndexEventArgs(ReadInt()));
                 }
                 else if (response == ServerResponse.Blinds) {
-                    int smallBlindIndex = int.Parse(ReadLine());
-                    int bigBlindIndex = int.Parse(ReadLine());
-                    OnBlindsReceived(new BlindsReceivedEventArgs(smallBlindIndex, bigBlindIndex));
+                    BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(ReadInt(), ReadInt()));
                 }
                 else if (response == ServerResponse.RequiredBet) {
-                    int requiredBet = int.Parse(ReadLine());
-                    OnRequiredBetReceived(new RequiredBetReceivedEventArgs(requiredBet));
+                    RequiredBetReceived?.Invoke(this, new RequiredBetReceivedEventArgs(ReadInt()));
                 }
                 else if (response == ServerResponse.Showdown) {
-                    int winnerCount = int.Parse(ReadLine());
+                    int winnerCount = ReadInt();
                     List<int> winnerIndexes = new List<int>();
 
                     for (int i = 0; i < winnerCount; i++) {
-                        winnerIndexes.Add(int.Parse(ReadLine()));
+                        winnerIndexes.Add(ReadInt());
                     }
                     
-                    OnShowdown(new ShowdownEventArgs(winnerIndexes));
+                    Showdown?.Invoke(this, new ShowdownEventArgs(winnerIndexes));
                 }
                 else if (response == ServerResponse.RoundFinished) {
-                    OnRoundFinished(new RoundFinishedEventArgs());
+                    RoundFinished?.Invoke(this, new RoundFinishedEventArgs());
                 }
 
                 responseCode = Session.Reader.Read();
@@ -121,47 +111,22 @@ namespace Table {
         }
 
         private void InitializeTable() {
-            int seatIndex = int.Parse(ReadLine());
-            int smallBlind = int.Parse(ReadLine());
-            int buyIn = int.Parse(ReadLine());
+            int seatIndex = ReadInt();
+            int smallBlind = ReadInt();
+            int buyIn = ReadInt();
             ServerJoinTableResponse response = (ServerJoinTableResponse) Session.Reader.Read();
 
             if (response == ServerJoinTableResponse.TableEmpty) {
-                OnTableEmpty(new TableEmptyEventArgs(seatIndex, smallBlind, buyIn));
+                TableEmpty?.Invoke(this, new TableEmptyEventArgs(seatIndex, smallBlind, buyIn));
             }
             else if(response == ServerJoinTableResponse.TableNotEmpty) {
                 string opponentUsername = ReadLine();
-                int opponentStack = int.Parse(ReadLine());
-                OnTableNotEmpty(new TableNotEmptyEventArgs(seatIndex, smallBlind, buyIn, opponentUsername, opponentStack));
+                int opponentStack = ReadInt();
+                TableNotEmpty?.Invoke(this, new TableNotEmptyEventArgs(seatIndex, smallBlind, buyIn, opponentUsername, opponentStack));
             }
         }
 
+        private int ReadInt() => int.Parse(ReadLine());
         private string ReadLine() => Session.Reader.ReadLine();
-        
-        #region Events
-
-        private void OnTableEmpty(TableEmptyEventArgs args) => TableEmpty?.Invoke(this, args);
-        private void OnTableNotEmpty(TableNotEmptyEventArgs args) => TableNotEmpty?.Invoke(this, args);
-        
-        private void OnPlayerJoined(PlayerJoinedEventArgs args) => PlayerJoined?.Invoke(this, args);
-        private void OnPlayerLeft(PlayerLeftEventArgs args) => PlayerLeft?.Invoke(this, args);
-        private void OnPlayerIndex(PlayerIndexEventArgs args) => PlayerIndex?.Invoke(this, args);
-
-        private void OnPlayerChecked(PlayerCheckedEventArgs args) => PlayerChecked?.Invoke(this, args);
-        private void OnPlayerCalled(PlayerCalledEventArgs args) => PlayerCalled?.Invoke(this, args);
-        private void OnPlayerFolded(PlayerFoldedEventArgs args) => PlayerFolded?.Invoke(this, args);
-        private void OnPlayerRaised(PlayerRaisedEventArgs args) => PlayerRaised?.Invoke(this, args);
-        private void OnPlayerAllIn(PlayerAllInEventArgs args) => PlayerAllIn?.Invoke(this, args);
-        
-        private void OnBlindsReceived(BlindsReceivedEventArgs args) => BlindsReceived?.Invoke(this, args);
-        private void OnRequiredBetReceived(RequiredBetReceivedEventArgs args) => RequiredBetReceived?.Invoke(this, args);
-        private void OnHandReceived(HandReceivedEventArgs args) => HandReceived?.Invoke(this, args);
-        private void OnFlopReceived(FlopReceivedEventArgs args) => FlopReceived?.Invoke(this, args);
-        private void OnTurnReceived(TurnReceivedEventArgs args) => TurnReceived?.Invoke(this, args);
-        private void OnRiverReceived(RiverReceivedEventArgs args) => RiverReceived?.Invoke(this, args);
-        private void OnShowdown(ShowdownEventArgs args) => Showdown?.Invoke(this, args);
-        private void OnRoundFinished(RoundFinishedEventArgs args) => RoundFinished?.Invoke(this, args);
-
-        #endregion
     }
 }
