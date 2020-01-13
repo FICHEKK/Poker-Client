@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Table.EventArguments;
+using UnityEngine;
 
 namespace Table {
     
@@ -10,7 +11,7 @@ namespace Table {
     /// Handles the server connection by receiving data from the network
     /// stream and raising events based on the data received.
     /// </summary>
-    public sealed class ServerConnectionHandler {
+    public sealed class ServerConnectionHandler : MonoBehaviour {
         public event EventHandler<TableEmptyEventArgs> TableEmpty;
         public event EventHandler<TableNotEmptyEventArgs> TableNotEmpty;
         public event EventHandler<PlayerJoinedEventArgs> PlayerJoined;
@@ -30,13 +31,8 @@ namespace Table {
         public event EventHandler<ShowdownEventArgs> Showdown;
         public event EventHandler<RoundFinishedEventArgs> RoundFinished;
 
-        private bool handling;
-
-        public void Handle() {
-            if (handling) return;
-            
+        private void Start() {
             new Thread(HandleServerConnection).Start();
-            handling = true;
         }
 
         private void HandleServerConnection() {
@@ -46,7 +42,6 @@ namespace Table {
 
             while (responseCode != -1) {
                 ServerResponse response = (ServerResponse) responseCode;
-                Trace.WriteLine(responseCode + " -> " + response);
 
                 if (response == ServerResponse.Hand) {
                     HandReceived?.Invoke(this, new HandReceivedEventArgs(ReadLine(), ReadLine()));
