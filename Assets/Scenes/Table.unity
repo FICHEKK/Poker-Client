@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -4010,6 +4011,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Screen Orientation Setter
       objectReference: {fileID: 0}
+    - target: {fileID: 7012213218113252161, guid: 227e9f9718930a249a99b9636b18a20c,
+        type: 3}
+      propertyPath: orientation
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -4064,11 +4070,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7012213218113252161, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: orientation
-      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 227e9f9718930a249a99b9636b18a20c, type: 3}
