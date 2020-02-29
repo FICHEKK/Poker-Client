@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -6427,80 +6428,6 @@ RectTransform:
   m_AnchoredPosition: {x: 400, y: -301.87}
   m_SizeDelta: {x: 800, y: 65.42}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1001 &925818793503878927
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 869405885450978920, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_Name
-      value: Screen Orientation Setter
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7439389498893068095, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7012213218113252161, guid: 227e9f9718930a249a99b9636b18a20c,
-        type: 3}
-      propertyPath: orientation
-      value: 3
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 227e9f9718930a249a99b9636b18a20c, type: 3}
 --- !u!222 &4467583558908119888
 CanvasRenderer:
   m_ObjectHideFlags: 0
