@@ -1,61 +1,60 @@
-﻿using System.Threading;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Lobby {
-    public class JoinTableHandler : MonoBehaviour {
-        [SerializeField] private Button joinTableButton;
+namespace Lobby
+{
+    public class JoinTableHandler : MonoBehaviour
+    {
         [SerializeField] private Slider slider;
         [SerializeField] private TMP_Text messageText;
 
-        public void JoinTable() {
-            HideMessage();
+        public void JoinTable()
+        {
+            SendJoinDataToServer();
+            ProcessServerResponse(Session.Reader.Read());
+        }
 
-            joinTableButton.interactable = false;
-            DisplayMessage("Joining table...");
-
-            string tableTitle = GetComponent<TableData>().Title;
-            float buyIn = slider.value;
-
-            new Thread(() => {
-                Session.Writer.BaseStream.WriteByte((byte) ClientRequest.JoinTable);
-                Session.Writer.WriteLine(tableTitle);
-                Session.Writer.WriteLine(buyIn);
-
-                int responseCode = Session.Reader.Read();
-                if (responseCode == -1) return;
-
-                ServerJoinTableResponse response = (ServerJoinTableResponse) responseCode;
-            
-                if (response == ServerJoinTableResponse.Success) {
-                    MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
-                }
-                else if (response == ServerJoinTableResponse.TableFull) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Could not join: Table is full."));
-                }
-                else if (response == ServerJoinTableResponse.TableDoesNotExist) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Could not join: Table does not exist."));
-                }
-                else {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Unexpected error occurred. Please try again."));
-                }
-                
-                MainThreadExecutor.Instance.Enqueue(() => joinTableButton.interactable = true);
-            }).Start();
+        private void SendJoinDataToServer()
+        {
+            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.JoinTable);
+            Session.Writer.WriteLine(GetComponent<TableData>().Title);
+            Session.Writer.WriteLine(slider.value);
         }
         
+        private void ProcessServerResponse(int responseCode)
+        {
+            if (responseCode == -1)
+            {
+                DisplayMessage("Server connection error.");
+                return;
+            }
+
+            switch ((ServerJoinTableResponse) responseCode)
+            {
+                case ServerJoinTableResponse.Success:
+                    GetComponent<SceneLoader>().LoadScene();
+                    break;
+                case ServerJoinTableResponse.TableFull:
+                    DisplayMessage("Could not join: Table is full.");
+                    break;
+                case ServerJoinTableResponse.TableDoesNotExist:
+                    DisplayMessage("Could not join: Table does not exist.");
+                    break;
+                default:
+                    DisplayMessage("Unexpected error occurred. Please try again.");
+                    break;
+            }
+        }
+
         //----------------------------------------------------------------
         //                      Message display
         //----------------------------------------------------------------
 
-        private void DisplayMessage(string text) {
+        private void DisplayMessage(string text)
+        {
             messageText.enabled = true;
             messageText.text = text;
-        }
-
-        private void HideMessage() {
-            messageText.enabled = false;
         }
     }
 }

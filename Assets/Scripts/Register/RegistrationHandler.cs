@@ -1,22 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Register {
-    public class RegistrationHandler : MonoBehaviour {
+namespace Register
+{
+    public class RegistrationHandler : MonoBehaviour
+    {
         [SerializeField] private TMP_InputField usernameInputField;
         [SerializeField] private TMP_InputField passwordInputField;
         [SerializeField] private TMP_InputField confirmPasswordInputField;
         [SerializeField] private TMP_InputField addressInputField;
         [SerializeField] private TMP_InputField portInputField;
         [SerializeField] private TMP_Text messageText;
-        [SerializeField] private Button registerButton;
-
-        private static readonly Color InfoMessageColor = Color.white;
+        
         private static readonly Color ServerSuccessColor = new Color(0f, 0.5f, 0f);
         private static readonly Color ServerErrorColor = new Color(1f, 0.5f, 0f);
         private static readonly Color FormErrorColor = Color.red;
@@ -27,33 +25,30 @@ namespace Register {
         private const int MinimumPasswordLength = 8;
         private const int MaximumPasswordLength = 64;
 
-        public void Register() {
+        public void Register()
+        {
             if (!IsRegistrationFormValid()) return;
 
-            registerButton.interactable = false;
-            DisplayMessage("Connecting to the server...", InfoMessageColor);
-
-            new Thread(() => {
-                try {
-                    int responseCode = RegisterOnServer(addressInputField.text, int.Parse(portInputField.text));
-                    if (responseCode == -1) return;
-
-                    MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer((ServerRegistrationResponse) responseCode));
-                }
-                catch (SocketException) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Error establishing the connection with the server.", ServerErrorColor));
-                }
-                catch (Exception e) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage(e.Message, ServerErrorColor));
-                }
-                
-                MainThreadExecutor.Instance.Enqueue(() => registerButton.interactable = true);
-            }).Start();
+            try
+            {
+                int responseCode = RegisterOnServer(addressInputField.text, int.Parse(portInputField.text));
+                ProcessServerResponse(responseCode);
+            }
+            catch (SocketException)
+            {
+                DisplayMessage("Error establishing the connection with the server.", ServerErrorColor);
+            }
+            catch (Exception e)
+            {
+                DisplayMessage(e.Message, ServerErrorColor);
+            }
         }
 
-        private int RegisterOnServer(string serverAddress, int serverPort) {
+        private int RegisterOnServer(string serverAddress, int serverPort)
+        {
             using (TcpClient client = new TcpClient(serverAddress, serverPort))
-            using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true}) {
+            using (StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true})
+            {
                 writer.BaseStream.WriteByte((byte) ClientRequest.Register);
                 writer.WriteLine(usernameInputField.text);
                 writer.WriteLine(passwordInputField.text);
@@ -62,8 +57,16 @@ namespace Register {
             }
         }
 
-        private void NotifyPlayer(ServerRegistrationResponse response) {
-            switch (response) {
+        private void ProcessServerResponse(int responseCode)
+        {
+            if (responseCode == -1)
+            {
+                DisplayMessage("Server connection error.", ServerErrorColor);
+                return;
+            }
+            
+            switch ((ServerRegistrationResponse) responseCode)
+            {
                 case ServerRegistrationResponse.Success:
                     DisplayMessage("Successfully registered!", ServerSuccessColor);
                     break;
@@ -82,9 +85,9 @@ namespace Register {
         //----------------------------------------------------------------
         //                      Form validation
         //----------------------------------------------------------------
-        
-        private bool IsRegistrationFormValid() {
-            HideMessage();
+
+        private bool IsRegistrationFormValid()
+        {
             return IsUsernameValid() && IsPasswordValid() && IsAddressValid() && IsPortValid();
         }
 
@@ -92,21 +95,26 @@ namespace Register {
         //                      Username validation
         //----------------------------------------------------------------
         
-        private bool IsUsernameValid() {
+        private bool IsUsernameValid()
+        {
             string username = usernameInputField.text;
             string errorMessage = null;
 
-            if (username.Length < MinimumUsernameLength) {
+            if (username.Length < MinimumUsernameLength)
+            {
                 errorMessage = "Username should be at least " + MinimumUsernameLength + " symbols long.";
             }
-            else if (username.Length > MaximumUsernameLength) {
+            else if (username.Length > MaximumUsernameLength)
+            {
                 errorMessage = "Username cannot be longer than " + MaximumUsernameLength + " symbols.";
             }
-            else if (!IsUsernameCorrectlyDefined(username)) {
+            else if (!IsUsernameCorrectlyDefined(username))
+            {
                 errorMessage = "Username can only contain letters and digits.";
             }
 
-            if (errorMessage != null) {
+            if (errorMessage != null)
+            {
                 DisplayMessage(errorMessage, FormErrorColor);
                 return false;
             }
@@ -114,17 +122,18 @@ namespace Register {
             return true;
         }
 
-        private bool IsUsernameCorrectlyDefined(string username) {
-            foreach (char c in username) {
-                if (!IsValidUsernameCharacter(c)) {
-                    return false;
-                }
+        private bool IsUsernameCorrectlyDefined(string username)
+        {
+            foreach (char c in username)
+            {
+                if (!IsValidUsernameCharacter(c)) return false;
             }
 
             return true;
         }
 
-        private bool IsValidUsernameCharacter(char character) {
+        private bool IsValidUsernameCharacter(char character)
+        {
             return char.IsLetter(character) || char.IsDigit(character);
         }
 
@@ -132,22 +141,27 @@ namespace Register {
         //                      Password validation
         //----------------------------------------------------------------
 
-        private bool IsPasswordValid() {
+        private bool IsPasswordValid()
+        {
             string password = passwordInputField.text;
             string confirmedPassword = confirmPasswordInputField.text;
             string errorMessage = null;
 
-            if (password.Length < MinimumPasswordLength) {
+            if (password.Length < MinimumPasswordLength)
+            {
                 errorMessage = "Password should be at least " + MinimumPasswordLength + " symbols long.";
             }
-            else if (password.Length > MaximumPasswordLength) {
+            else if (password.Length > MaximumPasswordLength) 
+            {
                 errorMessage = "Password cannot be longer than " + MaximumPasswordLength + " symbols.";
             }
-            else if (password != confirmedPassword) {
+            else if (password != confirmedPassword) 
+            {
                 errorMessage = "Password and confirmed password do not match.";
             }
 
-            if (errorMessage != null) {
+            if (errorMessage != null) 
+            {
                 DisplayMessage(errorMessage, FormErrorColor);
                 return false;
             }
@@ -159,10 +173,12 @@ namespace Register {
         //                      Address validation
         //----------------------------------------------------------------
         
-        private bool IsAddressValid() {
+        private bool IsAddressValid() 
+        {
             bool isValid = SocketAddressValidator.ValidateAddress(addressInputField.text);
 
-            if (!isValid) {
+            if (!isValid) 
+            {
                 DisplayMessage("Invalid IP address.", FormErrorColor);
             }
             
@@ -172,11 +188,13 @@ namespace Register {
         //----------------------------------------------------------------
         //                      Port validation
         //----------------------------------------------------------------
-        
-        private bool IsPortValid() {
+
+        private bool IsPortValid()
+        {
             bool isValid = SocketAddressValidator.ValidatePort(portInputField.text);
-            
-            if (!isValid) {
+
+            if (!isValid)
+            {
                 DisplayMessage("Invalid port number.", FormErrorColor);
             }
 
@@ -187,14 +205,11 @@ namespace Register {
         //                      Message display
         //----------------------------------------------------------------
 
-        private void DisplayMessage(string text, Color color) {
+        private void DisplayMessage(string text, Color color)
+        {
             messageText.enabled = true;
             messageText.text = text;
             messageText.color = color;
-        }
-
-        private void HideMessage() {
-            messageText.enabled = false;
         }
     }
 }

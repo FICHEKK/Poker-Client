@@ -1,10 +1,13 @@
 ﻿using System;
 
-namespace Table.EventArguments {
-    public class TurnReceivedEventArgs : EventArgs {
+namespace Table.EventArguments
+{
+    public class TurnReceivedEventArgs : EventArgs
+    {
         public string Card { get; }
 
-        public TurnReceivedEventArgs(string card) {
+        public TurnReceivedEventArgs(string card)
+        {
             Card = card;
         }
     }

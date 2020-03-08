@@ -1,73 +1,69 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Login {
-    
-    public class LoginHandler : MonoBehaviour {
+namespace Login
+{
+    public class LoginHandler : MonoBehaviour
+    {
         [SerializeField] private TMP_InputField usernameInputField;
         [SerializeField] private TMP_InputField passwordInputField;
         [SerializeField] private TMP_InputField addressInputField;
         [SerializeField] private TMP_InputField portInputField;
         [SerializeField] private TMP_Text messageText;
-        [SerializeField] private Button loginButton;
 
-        public void Login() {
+        public void Login()
+        {
             if (!IsLoginFormValid()) return;
 
-            loginButton.interactable = false;
-            DisplayMessage("Connecting to the server...");
+            try
+            {
+                Session.Username = usernameInputField.text;
+                Session.Client = new TcpClient(addressInputField.text, int.Parse(portInputField.text));
+                Session.Writer = new StreamWriter(Session.Client.GetStream()) {AutoFlush = true};
+                Session.Reader = new StreamReader(Session.Client.GetStream());
 
-            string username = usernameInputField.text;
-            string password = passwordInputField.text;
-            string address = addressInputField.text;
-            int port = int.Parse(portInputField.text);
-
-            new Thread(() => {
-                try {
-                    TcpClient client = new TcpClient(address, port);
-                    StreamWriter writer = new StreamWriter(client.GetStream()) {AutoFlush = true};
-
-                    writer.BaseStream.WriteByte((byte) ClientRequest.Login);
-                    writer.WriteLine(username);
-                    writer.WriteLine(password);
-
-                    int responseCode = client.GetStream().ReadByte();
-                    if (responseCode == -1) return;
-
-                    ServerLoginResponse response = (ServerLoginResponse) responseCode;
-
-                    if (response == ServerLoginResponse.Success) {
-                        Session.Username = username;
-                        Session.Client = client;
-                        Session.Reader = new StreamReader(client.GetStream());
-                        Session.Writer = writer;
-
-                        MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
-                    }
-                    else {
-                        writer.Close();
-                        client.Close();
-                        MainThreadExecutor.Instance.Enqueue(() => NotifyPlayer(response));
-                    }
-                }
-                catch (SocketException) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage("Error establishing the connection with the server."));
-                }
-                catch (Exception e) {
-                    MainThreadExecutor.Instance.Enqueue(() => DisplayMessage(e.Message));
-                }
-                
-                MainThreadExecutor.Instance.Enqueue(() => loginButton.interactable = true);
-            }).Start();
+                SendLoginDataToServer();
+                ProcessServerResponse(Session.Reader.Read());
+            }
+            catch (SocketException)
+            {
+                DisplayMessage("Error establishing the connection with the server.");
+            }
+            catch (Exception e)
+            {
+                DisplayMessage(e.Message);
+            }
         }
 
-        private void NotifyPlayer(ServerLoginResponse response) {
-            switch (response) {
+        private void SendLoginDataToServer()
+        {
+            Session.Writer.BaseStream.WriteByte((byte) ClientRequest.Login);
+            Session.Writer.WriteLine(usernameInputField.text);
+            Session.Writer.WriteLine(passwordInputField.text);
+        }
+
+        private void ProcessServerResponse(int responseCode)
+        {
+            if (responseCode == -1)
+            {
+                Session.Finish();
+                DisplayMessage("Server connection error.");
+                return;
+            }
+
+            ServerLoginResponse response = (ServerLoginResponse) responseCode;
+
+            if (response == ServerLoginResponse.Success)
+            {
+                GetComponent<SceneLoader>().LoadScene();
+                return;
+            }
+
+            switch (response)
+            {
                 case ServerLoginResponse.ServerFull:
                     DisplayMessage("Server is full.");
                     break;
@@ -79,51 +75,53 @@ namespace Login {
                     DisplayMessage("You are already logged in.");
                     break;
                 case ServerLoginResponse.UsernameBanned:
-                    DisplayMessage("You have been banned.");
+                    DisplayMessage("Account has been banned.");
                     break;
                 default:
                     DisplayMessage("Unexpected error occurred. Please try again.");
                     break;
             }
+            
+            Session.Finish();
         }
 
-        private bool IsLoginFormValid() {
-            HideMessage();
-
-            if (usernameInputField.text == string.Empty) {
+        private bool IsLoginFormValid()
+        {
+            if (usernameInputField.text == string.Empty)
+            {
                 DisplayMessage("Username is required.");
                 return false;
             }
 
-            if (passwordInputField.text == string.Empty) {
+            if (passwordInputField.text == string.Empty)
+            {
                 DisplayMessage("Password is required.");
                 return false;
             }
-            
-            if (!SocketAddressValidator.ValidateAddress(addressInputField.text)) {
+
+            if (!SocketAddressValidator.ValidateAddress(addressInputField.text))
+            {
                 DisplayMessage("Invalid IP address.");
                 return false;
             }
-            
-            if (!SocketAddressValidator.ValidatePort(portInputField.text)) {
+
+            if (!SocketAddressValidator.ValidatePort(portInputField.text))
+            {
                 DisplayMessage("Invalid port number.");
                 return false;
             }
 
             return true;
         }
-        
+
         //----------------------------------------------------------------
         //                      Message display
         //----------------------------------------------------------------
 
-        private void DisplayMessage(string text) {
+        private void DisplayMessage(string text)
+        {
             messageText.enabled = true;
             messageText.text = text;
-        }
-
-        private void HideMessage() {
-            messageText.enabled = false;
         }
     }
 }

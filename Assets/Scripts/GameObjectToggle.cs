@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 
-public class GameObjectToggle : MonoBehaviour {
+public class GameObjectToggle : MonoBehaviour
+{
     [SerializeField] private GameObject gameObjectToToggle;
 
-    public void ShowGameObject() {
+    public void ShowGameObject()
+    {
         gameObjectToToggle.SetActive(true);
     }
-        
-    public void HideGameObject() {
+
+    public void HideGameObject()
+    {
         gameObjectToToggle.SetActive(false);
     }
 }

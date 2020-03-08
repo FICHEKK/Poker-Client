@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Table.EventArguments {
-    public class RoundFinishedEventArgs : EventArgs {
-    }
+namespace Table.EventArguments
+{
+    public class RoundFinishedEventArgs : EventArgs { }
 }

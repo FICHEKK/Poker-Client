@@ -1,10 +1,13 @@
 ﻿using System;
 
-namespace Table.EventArguments {
-    public class PlayerLeftEventArgs : EventArgs {
+namespace Table.EventArguments
+{
+    public class PlayerLeftEventArgs : EventArgs
+    {
         public int Index { get; }
 
-        public PlayerLeftEventArgs(int index) {
+        public PlayerLeftEventArgs(int index)
+        {
             Index = index;
         }
     }

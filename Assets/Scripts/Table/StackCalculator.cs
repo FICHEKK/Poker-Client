@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Table
@@ -8,23 +8,14 @@ namespace Table
     public static class StackCalculator
     {
         private const float MinStackCoverage = 0.5f;
-        private const string ChipSpritesPath = "Assets/Resources/Sprites/Chips";
+        private const string ChipSpritesPath = "Sprites/Chips";
         private static readonly List<int> ChipValues = new List<int>();
 
         static StackCalculator()
         {
-            foreach (var fileInfo in new DirectoryInfo(ChipSpritesPath).GetFiles())
+            foreach (var sprite in Resources.LoadAll<Sprite>(ChipSpritesPath))
             {
-                if(fileInfo.Name.EndsWith(".meta")) continue;
-
-                try
-                {
-                    ChipValues.Add(int.Parse(Path.GetFileNameWithoutExtension(fileInfo.Name)));
-                }
-                catch
-                {
-                    // ignored
-                }
+                ChipValues.Add(int.Parse(sprite.name));
             }
 
             ChipValues.Sort((i1, i2) => i2.CompareTo(i1));

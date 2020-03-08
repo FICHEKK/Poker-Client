@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour {
+public class SceneLoader : MonoBehaviour
+{
     [SerializeField] private string sceneToLoad;
 
-    public void LoadScene() {
+    public void LoadScene()
+    {
         SceneManager.LoadScene(sceneToLoad);
     }
 }
