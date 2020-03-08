@@ -1,9 +1,4 @@
-﻿using System;
-using Table;
-using UnityEditor;
-using UnityEngine;
-
-namespace Editor
+﻿namespace Editor
 {
 //    [CustomEditor(typeof(StackDisplayer))]
 //    public class StackDisplayerEditor : UnityEditor.Editor
