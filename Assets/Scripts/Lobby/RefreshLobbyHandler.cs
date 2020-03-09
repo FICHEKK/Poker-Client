@@ -18,6 +18,8 @@ namespace Lobby
         [SerializeField] private TMP_Text rewardMessageText;
         [SerializeField] private TMP_Text rewardValueText;
         [SerializeField] private StackDisplayer stackDisplayer;
+        
+        private static readonly Color OddButtonColor = new Color(.9f, .9f, .9f);
 
         void Start()
         {
@@ -93,6 +95,11 @@ namespace Lobby
             else
             {
                 button = Instantiate(tableButton, grid.transform, true);
+            }
+
+            if (index % 2 == 1)
+            {
+                button.GetComponent<Image>().color = OddButtonColor;
             }
 
             button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text =

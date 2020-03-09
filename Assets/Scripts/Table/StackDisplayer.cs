@@ -20,6 +20,8 @@ namespace Table
         private const int MaxStackChipCount = 16;
         private const string ChipSpritesPath = "Sprites/Chips";
         private static Dictionary<int, Sprite> _chipValueToSprite;
+        
+        public int Value { get; set; }
 
         public void Awake()
         {
@@ -37,6 +39,12 @@ namespace Table
         public void UpdateStack(int stack)
         {
             DeleteAllChips();
+            
+            if(stack == 0)
+            {
+                stackValueText.text = string.Empty;
+                return;
+            }
 
             var chipDistribution = StackCalculator.CalculateChipDistribution(stack);
             int sum = chipDistribution.Sum(pair => pair.Amount);
@@ -71,6 +79,7 @@ namespace Table
             }
 
             stackValueText.text = stack.ToString();
+            Value = stack;
         }
 
         private static GameObject CreateChip(int chipValue)

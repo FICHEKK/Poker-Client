@@ -14,7 +14,7 @@ namespace Lobby
         private const int MaxSmallBlind = 1_000_000;
 
         private const int MinNumberOfPlayers = 2;
-        private const int MaxNumberOfPlayers = 9;
+        private const int MaxNumberOfPlayers = 10;
 
         public void CreateTable()
         {
