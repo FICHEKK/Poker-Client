@@ -61,25 +61,27 @@ namespace Register
         {
             if (responseCode == -1)
             {
-                DisplayMessage("Server connection error.", ServerErrorColor);
+                GiveFeedback("Server connection error.", ServerErrorColor, Sound.Error);
                 return;
             }
             
             switch ((ServerRegistrationResponse) responseCode)
             {
                 case ServerRegistrationResponse.Success:
-                    DisplayMessage("Successfully registered!", ServerSuccessColor);
-                    break;
+                    GiveFeedback("Successfully registered!", ServerSuccessColor, Sound.Success); break;
                 case ServerRegistrationResponse.UsernameTaken:
-                    DisplayMessage("Username is already taken.", ServerErrorColor);
-                    break;
+                    GiveFeedback("Username is already taken.", ServerErrorColor, Sound.Error); break;
                 case ServerRegistrationResponse.DatabaseError:
-                    DisplayMessage("Server database error occurred. Please try again.", ServerErrorColor);
-                    break;
+                    GiveFeedback("Server database error occurred. Please try again.", ServerErrorColor, Sound.Error); break;
                 default:
-                    DisplayMessage("Unexpected error occurred. Please try again.", ServerErrorColor);
-                    break;
+                    GiveFeedback("Unexpected error occurred. Please try again.", ServerErrorColor, Sound.Error); break;
             }
+        }
+
+        private void GiveFeedback(string message, Color messageColor, Sound sound)
+        {
+            DisplayMessage(message, messageColor);
+            AudioManager.Instance.Play(sound);
         }
         
         //----------------------------------------------------------------
