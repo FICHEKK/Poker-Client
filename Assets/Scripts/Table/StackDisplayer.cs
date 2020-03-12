@@ -39,6 +39,7 @@ namespace Table
         public void UpdateStack(int stack)
         {
             DeleteAllChips();
+            Value = stack;
             
             if(stack == 0)
             {
@@ -79,7 +80,6 @@ namespace Table
             }
 
             stackValueText.text = stack.ToString();
-            Value = stack;
         }
 
         private static GameObject CreateChip(int chipValue)

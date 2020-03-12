@@ -9,6 +9,7 @@ namespace Table
         [SerializeField] private Image card1;
         [SerializeField] private Image card2;
         [SerializeField] private Image frame;
+        [SerializeField] private Image frameBorder;
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text stackText;
         [SerializeField] private StackDisplayer betStack;
@@ -61,6 +62,7 @@ namespace Table
             SetFrameAlpha(0.2f);
             SetUsername("Empty");
             stackText.text = "-";
+            frameBorder.enabled = false;
         }
         
         public void MarkAsWaiting()
@@ -68,6 +70,7 @@ namespace Table
             ToggleCards(false);
             SetFrameColor(Color.white);
             SetFrameAlpha(0.5f);
+            frameBorder.enabled = false;
         }
 
         public void MarkAsPlaying()
@@ -75,6 +78,13 @@ namespace Table
             ToggleCards(true);
             SetFrameColor(Color.white);
             SetFrameAlpha(1f);
+            frameBorder.enabled = false;
+        }
+
+        public void MarkAsFocused()
+        {
+            MarkAsPlaying();
+            frameBorder.enabled = true;
         }
 
         //----------------------------------------------------------------

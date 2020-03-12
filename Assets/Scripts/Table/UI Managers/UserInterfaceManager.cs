@@ -24,6 +24,8 @@ namespace Table.UI_Managers
         private int requiredCallAmount;
         private Vector3 potPositionOnTable;
 
+        private int focusedSeatIndex = -1;
+
         private void Awake()
         {
             foreach (var seat in seats)
@@ -113,7 +115,18 @@ namespace Table.UI_Managers
             MainThreadExecutor.Instance.Enqueue(() => seats[e.Index].MarkAsEmpty());
 
         private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => actionInterface.SetActive(e.Index == seatIndex));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                actionInterface.SetActive(e.Index == seatIndex);
+
+                if (focusedSeatIndex >= 0)
+                {
+                    seats[focusedSeatIndex].MarkAsPlaying();
+                }
+
+                focusedSeatIndex = e.Index;
+                seats[focusedSeatIndex].MarkAsFocused();
+            });
 
         private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e)
         {
@@ -145,7 +158,7 @@ namespace Table.UI_Managers
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                bool canCheck = e.RequiredBet == seats[seatIndex].CurrentBet;
+                bool canCheck = e.RequiredBet == 0;
                 
                 checkButton.interactable = canCheck;
                 callButton.interactable = !canCheck;
@@ -156,7 +169,7 @@ namespace Table.UI_Managers
                 }
                 else
                 {
-                    requiredCallAmount = e.RequiredBet - seats[seatIndex].CurrentBet;
+                    requiredCallAmount = e.RequiredBet;
                     callButton.GetComponentInChildren<TMP_Text>().text = "Call " + requiredCallAmount;
 
                     SetSliderRange(requiredCallAmount * 2, seats[seatIndex].Stack);
@@ -198,24 +211,8 @@ namespace Table.UI_Managers
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 currentPot = 0;
-                AddBetsToPot();
-
-                HideAllBets();
+                potStack.UpdateStack(0);
             });
-        }
-
-        //----------------------------------------------------------------
-        //                      Chip manipulation
-        //----------------------------------------------------------------
-
-        private void AddBetsToPot()
-        {
-            foreach (Seat seat in seats)
-            {
-                currentPot += seat.CurrentBet;
-            }
-
-            HideAllBets();
         }
 
         //----------------------------------------------------------------
@@ -227,7 +224,7 @@ namespace Table.UI_Managers
             raiseSlider.minValue = minValue;
             raiseSlider.maxValue = maxValue;
             raiseSlider.value = raiseSlider.minValue;
-            UpdateRaiseButtonText();
+            raiseButtonText.text = "Raise " + raiseSlider.value;
         }
 
         private void OnPhaseChange()
@@ -236,27 +233,15 @@ namespace Table.UI_Managers
             SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
         }
 
-        public void UpdateRaiseButtonText()
+        private void AddBetsToPot()
         {
-            raiseButtonText.text = "Raise " + raiseSlider.value;
-        }
-
-
-        //----------------------------------------------------------------
-        //                         Hiding UI
-        //----------------------------------------------------------------
-
-        private void HideAllBets()
-        {
-            foreach (Seat seat in seats)
+            foreach (var seat in seats)
             {
+                currentPot += seat.CurrentBet;
                 seat.HideBet();
             }
-        }
-
-        private void HidePot()
-        {
-            potStack.UpdateStack(0);
+            
+            potStack.UpdateStack(currentPot);
         }
 
         //----------------------------------------------------------------
