@@ -1,4 +1,5 @@
-﻿using Table.EventArguments;
+﻿using System.Collections;
+using Table.EventArguments;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,15 +23,7 @@ namespace Table.UI_Managers
 
         private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e)
         {
-            MainThreadExecutor.Instance.Enqueue(() =>
-            {
-                flopCard1.enabled = true;
-                flopCard2.enabled = true;
-                flopCard3.enabled = true;
-                flopCard1.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card1);
-                flopCard2.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card2);
-                flopCard3.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card3);
-            });
+            MainThreadExecutor.Instance.Enqueue(() => StartCoroutine(DisplayFlop(e)));
         }
 
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e)
@@ -43,6 +36,13 @@ namespace Table.UI_Managers
             flopCard1.enabled = false;
             flopCard2.enabled = false;
             flopCard3.enabled = false;
+        }
+
+        private IEnumerator DisplayFlop(FlopReceivedEventArgs e)
+        {
+            yield return StartCoroutine(UserInterfaceManager.DisplayCard(flopCard1, e.Card1));
+            yield return StartCoroutine(UserInterfaceManager.DisplayCard(flopCard2, e.Card2));
+            yield return StartCoroutine(UserInterfaceManager.DisplayCard(flopCard3, e.Card3));
         }
     }
 }

@@ -16,6 +16,8 @@ namespace Table
         
         public int Stack { get; private set; }
         public int CurrentBet => betStack.Value;
+        public bool IsEmpty => stackText.text == string.Empty;
+        public StackDisplayer BetStack => betStack;
 
         public void SetUsername(string username)
         {
@@ -39,16 +41,16 @@ namespace Table
             SetStack(Stack + amount);
         }
 
-        public void HideBet()
-        {
-            betStack.UpdateStack(0);
-        }
-
         public void ShowCards(string c1, string c2)
         {
             ToggleCards(true);
             card1.sprite = Resources.Load<Sprite>("Sprites/Cards/" + c1);
             card2.sprite = Resources.Load<Sprite>("Sprites/Cards/" + c2);
+        }
+
+        public void HideCards()
+        {
+            ShowCards("Back", "Back");
         }
 
         //----------------------------------------------------------------
@@ -61,7 +63,7 @@ namespace Table
             SetFrameColor(Color.white);
             SetFrameAlpha(0.2f);
             SetUsername("Empty");
-            stackText.text = "-";
+            stackText.text = string.Empty;
             frameBorder.enabled = false;
         }
         

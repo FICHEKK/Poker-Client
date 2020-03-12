@@ -9,5 +9,6 @@
     Fold,
     Raise,
     AllIn,
-    CardFlip
+    CardFlip,
+    DeckShuffle,
 }

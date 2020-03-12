@@ -20,11 +20,7 @@ namespace Table.UI_Managers
 
         private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e)
         {
-            MainThreadExecutor.Instance.Enqueue(() =>
-            {
-                turnCard.enabled = true;
-                turnCard.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card);
-            });
+            MainThreadExecutor.Instance.Enqueue(() => StartCoroutine(UserInterfaceManager.DisplayCard(turnCard, e.Card)));
         }
 
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e)

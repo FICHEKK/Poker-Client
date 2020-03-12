@@ -4,7 +4,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 namespace Table
 {
@@ -16,23 +15,26 @@ namespace Table
         [SerializeField] private float widthSpacing;
         [SerializeField] private float heightSpacing;
 
-        private const int MinStackChipCount = 10;
-        private const int MaxStackChipCount = 16;
+        private const int StackChipCount = 10;
         private const string ChipSpritesPath = "Sprites/Chips";
         private static Dictionary<int, Sprite> _chipValueToSprite;
         
-        public int Value { get; set; }
+        public int Value { get; private set; }
+        public Vector3 OriginalPosition { get; private set; }
 
         public void Awake()
         {
-            if (_chipValueToSprite != null) return;
+            OriginalPosition = transform.position;
             
-            _chipValueToSprite = new Dictionary<int, Sprite>();
-            
-            foreach (var sprite in Resources.LoadAll<Sprite>(ChipSpritesPath))
+            if (_chipValueToSprite == null)
             {
-                sprite.texture.filterMode = FilterMode.Point;
-                _chipValueToSprite.Add(int.Parse(sprite.name), sprite);
+                _chipValueToSprite = new Dictionary<int, Sprite>();
+            
+                foreach (var sprite in Resources.LoadAll<Sprite>(ChipSpritesPath))
+                {
+                    sprite.texture.filterMode = FilterMode.Point;
+                    _chipValueToSprite.Add(int.Parse(sprite.name), sprite);
+                }
             }
         }
         
@@ -50,9 +52,7 @@ namespace Table
             var chipDistribution = StackCalculator.CalculateChipDistribution(stack);
             int sum = chipDistribution.Sum(pair => pair.Amount);
 
-            int stackChipCount = Random.Range(MinStackChipCount, MaxStackChipCount);
-            
-            int n = (int) Math.Ceiling((double) sum / stackChipCount);
+            int n = (int) Math.Ceiling((double) sum / StackChipCount);
             float x = n % 2 == 0 ? -(n / 2 - 0.5f) * widthSpacing : -n / 2 * widthSpacing;
             float y = 0f;
             int chipCounter = 0;
@@ -71,7 +71,7 @@ namespace Table
 
                     y += heightSpacing;
                     
-                    if (++chipCounter % stackChipCount == 0)
+                    if (++chipCounter % StackChipCount == 0)
                     {
                         x += widthSpacing;
                         y = 0f;

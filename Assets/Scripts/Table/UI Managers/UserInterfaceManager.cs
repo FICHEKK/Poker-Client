@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Table.EventArguments;
 using TMPro;
 using UnityEngine;
@@ -20,9 +21,7 @@ namespace Table.UI_Managers
 
         private int smallBlind;
         private int seatIndex;
-        private int currentPot;
         private int requiredCallAmount;
-        private Vector3 potPositionOnTable;
 
         private int focusedSeatIndex = -1;
 
@@ -32,8 +31,6 @@ namespace Table.UI_Managers
             {
                 seat.MarkAsEmpty();
             }
-            
-            potPositionOnTable = potStack.transform.position;
 
             var handler = GetComponentInParent<ServerConnectionHandler>();
 
@@ -94,10 +91,19 @@ namespace Table.UI_Managers
         //----------------------------------------------------------------
         
         private void HandReceivedEventHandler(object sender, HandReceivedEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => seats[seatIndex].ShowCards(e.Card1, e.Card2));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                foreach (var seat in seats.Where(seat => !seat.IsEmpty))
+                {
+                    seat.MarkAsPlaying();
+                    seat.HideCards();
+                }
+                
+                seats[seatIndex].ShowCards(e.Card1, e.Card2);
+                AudioManager.Instance.Play(Sound.DeckShuffle);
+            });
 
-        private void PlayerJoinedEventHandler(object sender, PlayerJoinedEventArgs e)
-        {
+        private void PlayerJoinedEventHandler(object sender, PlayerJoinedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 if (Session.Username == e.Username)
@@ -109,7 +115,6 @@ namespace Table.UI_Managers
                 seats[e.Index].SetStack(e.Stack);
                 seats[e.Index].MarkAsWaiting();
             });
-        }
 
         private void PlayerLeftEventHandler(object sender, PlayerLeftEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() => seats[e.Index].MarkAsEmpty());
@@ -127,35 +132,53 @@ namespace Table.UI_Managers
                 focusedSeatIndex = e.Index;
                 seats[focusedSeatIndex].MarkAsFocused();
             });
+        
+        //----------------------------------------------------------------
+        //                      Player actions
+        //----------------------------------------------------------------
 
-        private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e)
-        {
-            // Change seat frame color to indicate checking
-        }
+        private void PlayerCheckedEventHandler(object sender, PlayerCheckedEventArgs e) =>
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                AudioManager.Instance.Play(Sound.Check);
+            });
 
         private void PlayerCalledEventHandler(object sender, PlayerCalledEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => seats[e.PlayerIndex].PlaceChipsOnTable(e.CallAmount));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                seats[e.PlayerIndex].PlaceChipsOnTable(e.CallAmount);
+                AudioManager.Instance.Play(Sound.Call);
+            });
 
         private void PlayerFoldedEventHandler(object sender, PlayerFoldedEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => seats[e.PlayerIndex].MarkAsWaiting());
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                seats[e.PlayerIndex].MarkAsWaiting();
+                AudioManager.Instance.Play(Sound.Fold);
+            });
 
         private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => seats[e.PlayerIndex].PlaceChipsOnTable(e.RaiseAmount));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                seats[e.PlayerIndex].PlaceChipsOnTable(e.RaiseAmount);
+                AudioManager.Instance.Play(Sound.Raise);
+            });
 
         private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => seats[e.PlayerIndex].PlaceChipsOnTable(e.AllInAmount));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                seats[e.PlayerIndex].PlaceChipsOnTable(e.AllInAmount);
+                AudioManager.Instance.Play(Sound.AllIn);
+            });
 
-        private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e)
-        {
+        private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 seats[e.SmallBlindIndex].PlaceChipsOnTable(smallBlind);
                 seats[e.BigBlindIndex].PlaceChipsOnTable(smallBlind * 2);
             });
-        }
 
-        private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e)
-        {
+        private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 bool canCheck = e.RequiredBet == 0;
@@ -175,22 +198,37 @@ namespace Table.UI_Managers
                     SetSliderRange(requiredCallAmount * 2, seats[seatIndex].Stack);
                 }
             });
-        }
 
         //----------------------------------------------------------------
         //                      Round phase handlers
         //----------------------------------------------------------------
 
-        private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e) => MainThreadExecutor.Instance.Enqueue(OnPhaseChange);
-        private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e) => MainThreadExecutor.Instance.Enqueue(OnPhaseChange);
-        private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e) => MainThreadExecutor.Instance.Enqueue(OnPhaseChange);
+        private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e) => 
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                StartCoroutine(AddBetsToPot());
+                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
+            });
+        
+        private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e) =>
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                StartCoroutine(AddBetsToPot());
+                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
+            });
+        
+        private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e) =>
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                StartCoroutine(AddBetsToPot());
+                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
+            });
 
         private void ShowdownEventHandler(object sender, ShowdownEventArgs e)
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 actionInterface.SetActive(false);
-                OnPhaseChange();
 
                 if (e.WinnerIndexes.Count == 1)
                 {
@@ -200,20 +238,14 @@ namespace Table.UI_Managers
                 {
                     foreach (int winnerIndex in e.WinnerIndexes)
                     {
-                        seats[winnerIndex].GiveChips(currentPot / e.WinnerIndexes.Count);
+                        seats[winnerIndex].GiveChips(potStack.Value / e.WinnerIndexes.Count);
                     }
                 }
             });
         }
 
-        private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e)
-        {
-            MainThreadExecutor.Instance.Enqueue(() =>
-            {
-                currentPot = 0;
-                potStack.UpdateStack(0);
-            });
-        }
+        private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e) =>
+            MainThreadExecutor.Instance.Enqueue(() => potStack.UpdateStack(0));
 
         //----------------------------------------------------------------
         //                      Helper methods
@@ -224,52 +256,96 @@ namespace Table.UI_Managers
             raiseSlider.minValue = minValue;
             raiseSlider.maxValue = maxValue;
             raiseSlider.value = raiseSlider.minValue;
+            UpdateRaiseButtonText();
+        }
+
+        public void UpdateRaiseButtonText()
+        {
             raiseButtonText.text = "Raise " + raiseSlider.value;
         }
 
-        private void OnPhaseChange()
-        {
-            AddBetsToPot();
-            SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
-        }
-
-        private void AddBetsToPot()
-        {
-            foreach (var seat in seats)
-            {
-                currentPot += seat.CurrentBet;
-                seat.HideBet();
-            }
-            
-            potStack.UpdateStack(currentPot);
-        }
-
         //----------------------------------------------------------------
-        //                 Moving pot to winning player
+        //                         Coroutine
         //----------------------------------------------------------------
 
         private IEnumerator TranslatePotToWinningPlayer(int winnerIndex)
         {
-            Vector3 destination = seats[winnerIndex].transform.position;
-
-            yield return StartCoroutine(TranslateGameObject(potStack.transform, destination, 0.5f));
-
+            yield return StartCoroutine(AddBetsToPot());
+            yield return new WaitForSeconds(1f);
+            yield return StartCoroutine(TranslateGameObject(potStack.transform, seats[winnerIndex].transform.position, 0.5f));
+            
+            seats[winnerIndex].GiveChips(potStack.Value);
+            AudioManager.Instance.Play(Sound.Raise);
+            
             potStack.UpdateStack(0);
-            potStack.transform.position = potPositionOnTable;
-            seats[winnerIndex].GiveChips(currentPot);
+            potStack.transform.position = potStack.OriginalPosition;
+        }
+        
+        private IEnumerator AddBetsToPot()
+        {
+            bool atleastOneBetWasMoved = false;
+            int potValue = potStack.Value;
+            
+            foreach (var seat in seats)
+            {
+                if (seat.BetStack.Value > 0)
+                {
+                    StartCoroutine(TranslateBetToPot(seat.BetStack));
+                    potValue += seat.CurrentBet;
+                    atleastOneBetWasMoved = true;
+                }
+            }
+
+            if (atleastOneBetWasMoved)
+            {
+                yield return new WaitForSeconds(0.9f);
+
+                potStack.UpdateStack(potValue);
+                AudioManager.Instance.Play(Sound.Raise);
+            }
         }
 
-        private IEnumerator TranslateGameObject(Transform subject, Vector3 destination, float animationDuration)
+        private IEnumerator TranslateBetToPot(StackDisplayer bet)
+        {
+            yield return StartCoroutine(TranslateGameObject(bet.transform, potStack.transform.position, 0.5f));
+            
+            bet.UpdateStack(0);
+            bet.transform.position = bet.OriginalPosition;
+        }
+
+        private static IEnumerator TranslateGameObject(Transform subject, Vector3 destination, float animationDuration)
         {
             int timeSlices = 50;
-            Vector3 direction = destination - subject.transform.position;
-            direction.z = 0f;
-            direction /= timeSlices;
+            Vector3 direction = (destination - subject.transform.position) / timeSlices;
 
             for (int i = 0; i < timeSlices; i++)
             {
                 subject.Translate(direction);
                 yield return new WaitForSeconds(animationDuration / timeSlices);
+            }
+        }
+        
+        public static IEnumerator DisplayCard(Image cardImage, string card)
+        {
+            cardImage.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
+            cardImage.enabled = true;
+            AudioManager.Instance.Play(Sound.CardFlip);
+
+            const int timeSlices = 15;
+            const float rotationPerFrame = 90f / timeSlices;
+            
+            for (int i = 0; i < timeSlices; i++)
+            {
+                cardImage.transform.Rotate(0f, rotationPerFrame, 0f);
+                yield return null;
+            }
+            
+            cardImage.sprite = Resources.Load<Sprite>("Sprites/Cards/" + card);
+
+            for (int i = 0; i < timeSlices; i++)
+            {
+                cardImage.transform.Rotate(0f, -rotationPerFrame, 0f);
+                yield return null;
             }
         }
 
@@ -300,7 +376,6 @@ namespace Table.UI_Managers
         {
             actionInterface.SetActive(false);
             bool isAllIn = (int) raiseSlider.value == (int) raiseSlider.maxValue;
-
             Session.Client.GetStream().WriteByte((byte) (isAllIn ? ClientRequest.AllIn : ClientRequest.Raise));
             Session.Writer.WriteLine(raiseSlider.value);
         }

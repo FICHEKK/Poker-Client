@@ -20,11 +20,7 @@ namespace Table.UI_Managers
 
         private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e)
         {
-            MainThreadExecutor.Instance.Enqueue(() =>
-            {
-                riverCard.enabled = true;
-                riverCard.sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.Card);
-            });
+            MainThreadExecutor.Instance.Enqueue(() => StartCoroutine(UserInterfaceManager.DisplayCard(riverCard, e.Card)));
         }
 
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e)

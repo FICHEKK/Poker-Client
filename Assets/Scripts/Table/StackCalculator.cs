@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Table
 {
     public static class StackCalculator
     {
-        private const float MinStackCoverage = 0.5f;
         private const string ChipSpritesPath = "Sprites/Chips";
         private static readonly List<int> ChipValues = new List<int>();
 
@@ -31,7 +29,7 @@ namespace Table
             {
                 while (ChipValues[index] > stack) index++;
 
-                int amount = GetAmountFor(ChipValues[index], stack);
+                int amount = stack / ChipValues[index];
                 chipDistribution.Add(new ChipValueAmountPair(ChipValues[index], amount));
                 
                 stack -= ChipValues[index] * amount;
@@ -39,16 +37,6 @@ namespace Table
             
             chipDistribution.Reverse();
             return chipDistribution;
-        }
-        
-        private static int GetAmountFor(int chipValue, int stack)
-        {
-            if (chipValue == 1) return stack;
-
-            int minAmount = (int) Math.Ceiling(stack * MinStackCoverage / chipValue);
-            int maxAmount = stack / chipValue;
-
-            return Random.Range(minAmount, maxAmount + 1);
         }
 
         public class ChipValueAmountPair
