@@ -17,6 +17,7 @@ namespace Table
         public int Stack { get; private set; }
         public int CurrentBet => betStack.Value;
         public bool IsEmpty => stackText.text == string.Empty;
+        public bool Folded { get; set; }
         public StackDisplayer BetStack => betStack;
 
         public void SetUsername(string username)
@@ -83,10 +84,9 @@ namespace Table
             frameBorder.enabled = false;
         }
 
-        public void MarkAsFocused()
+        public void SetFocused(bool focused)
         {
-            MarkAsPlaying();
-            frameBorder.enabled = true;
+            frameBorder.enabled = focused;
         }
 
         //----------------------------------------------------------------

@@ -4,11 +4,15 @@ namespace Table.EventArguments
 {
     public class RequiredBetReceivedEventArgs : EventArgs
     {
-        public int RequiredBet { get; }
+        public int RequiredCall { get; }
+        public int MinRaise { get; }
+        public int MaxRaise { get; }
 
-        public RequiredBetReceivedEventArgs(int requiredBet)
+        public RequiredBetReceivedEventArgs(int requiredCall, int minRaise, int maxRaise)
         {
-            RequiredBet = requiredBet;
+            RequiredCall = requiredCall;
+            MinRaise = minRaise;
+            MaxRaise = maxRaise;
         }
     }
 }

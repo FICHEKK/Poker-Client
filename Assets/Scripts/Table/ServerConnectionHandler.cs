@@ -71,7 +71,7 @@ namespace Table
                 () => BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(Session.ReadInt(), Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.RequiredBet,
-                () => RequiredBetReceived?.Invoke(this, new RequiredBetReceivedEventArgs(Session.ReadInt())));
+                () => RequiredBetReceived?.Invoke(this, new RequiredBetReceivedEventArgs(Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.PlayerJoined,
                 () => PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs(Session.ReadInt(), Session.ReadLine(), Session.ReadInt())));
@@ -121,17 +121,48 @@ namespace Table
         private void InitializeTable()
         {
             int smallBlind = Session.ReadInt();
-            int playerCount = Session.ReadInt();
             int maxPlayers = Session.ReadInt();
+            
+            var players = ReceivePlayerList();
+            var cards = ReceiveCommunityCardList();
+            
+            int playerIndex = Session.ReadInt();
+            int pot = Session.ReadInt();
 
-            List<TablePlayerData> players = new List<TablePlayerData>();
+            TableInit?.Invoke(this, new TableInitEventArgs(players, cards, playerIndex, pot, smallBlind, maxPlayers));
+        }
+
+        private static List<TablePlayerData> ReceivePlayerList()
+        {
+            int playerCount = Session.ReadInt();
+            var players = new List<TablePlayerData>(playerCount);
 
             for (int i = 0; i < playerCount; i++)
             {
-                players.Add(new TablePlayerData(Session.ReadInt(), Session.ReadLine(), Session.ReadInt()));
+                int index = Session.ReadInt();
+                string username = Session.ReadLine();
+                int stack = Session.ReadInt();
+                int bet = Session.ReadInt();
+                bool folded = Session.ReadBool();
+                
+                players.Add(new TablePlayerData(index, username, stack, bet, folded));
             }
-            
-            TableInit?.Invoke(this, new TableInitEventArgs(smallBlind, maxPlayers, players));
+
+            return players;
+        }
+
+        private static List<string> ReceiveCommunityCardList()
+        {
+            int cardCount = Session.ReadInt();
+            var cards = new List<string>(cardCount);
+
+            for (int i = 0; i < cardCount; i++)
+            {
+                string card = Session.ReadLine();
+                cards.Add(card);
+            }
+
+            return cards;
         }
 
         public class TablePlayerData
@@ -139,12 +170,16 @@ namespace Table
             public int Index { get; }
             public string Username { get; }
             public int Stack { get; }
+            public int Bet { get; }
+            public bool Folded { get; }
 
-            public TablePlayerData(int index, string username, int stack)
+            public TablePlayerData(int index, string username, int stack, int bet, bool folded)
             {
                 Index = index;
                 Username = username;
                 Stack = stack;
+                Bet = bet;
+                Folded = folded;
             }
         }
     }

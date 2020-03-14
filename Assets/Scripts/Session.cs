@@ -20,6 +20,7 @@ public static class Session
         Username = null;
     }
 
-    public static int ReadInt() => int.Parse(ReadLine());
     public static string ReadLine() => Reader.ReadLine();
+    public static int ReadInt() => int.Parse(ReadLine());
+    public static bool ReadBool() => bool.Parse(ReadLine());
 }

@@ -6,15 +6,20 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Table.UI_Managers
+namespace Table
 {
     public class UserInterfaceManager : MonoBehaviour
     {
+        [SerializeField] private Image[] communityCards;
+
         [SerializeField] private StackDisplayer potStack;
         [SerializeField] private GameObject actionInterface;
         [SerializeField] private Button checkButton;
         [SerializeField] private Button callButton;
         [SerializeField] private Slider raiseSlider;
+        
+        
+        [SerializeField] private TMP_Text callButtonText;
         [SerializeField] private TMP_Text raiseButtonText;
         
         [SerializeField] private List<Seat> seats;
@@ -31,6 +36,8 @@ namespace Table.UI_Managers
             {
                 seat.MarkAsEmpty();
             }
+            
+            HideCommunityCards();
 
             var handler = GetComponentInParent<ServerConnectionHandler>();
 
@@ -51,8 +58,8 @@ namespace Table.UI_Managers
             handler.RequiredBetReceived += RequiredBetReceivedEventHandler;
             handler.FlopReceived += FlopReceivedEventHandler;
             handler.TurnReceived += TurnReceivedEventHandler;
-            handler.Showdown += ShowdownEventHandler;
             handler.RiverReceived += RiverReceivedEventHandler;
+            handler.Showdown += ShowdownEventHandler;
 
             handler.RoundFinished += RoundFinishedEventHandler;
         }
@@ -65,8 +72,6 @@ namespace Table.UI_Managers
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                smallBlind = e.SmallBlind;
-
                 int playerDataIndex = 0;
                 
                 for (int i = 0; i < e.MaxPlayers; i++)
@@ -77,11 +82,36 @@ namespace Table.UI_Managers
                     {
                         seats[i].SetUsername(e.Players[playerDataIndex].Username);
                         seats[i].SetStack(e.Players[playerDataIndex].Stack);
+                        seats[i].BetStack.UpdateStack(e.Players[playerDataIndex].Bet);
+
+                        if (e.Players[playerDataIndex].Folded)
+                        {
+                            seats[i].MarkAsWaiting();
+                        }
+                        else
+                        {
+                            seats[i].MarkAsPlaying();
+                        }
+
                         playerDataIndex++;
                     }
                 }
 
-                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
+                if (e.PlayerIndex != -1)
+                {
+                    focusedSeatIndex = e.PlayerIndex;
+                    seats[e.PlayerIndex].SetFocused(true);
+                }
+
+                for (int i = 0; i < e.CommunityCards.Count; i++)
+                {
+                    communityCards[i].enabled = true;
+                    communityCards[i].sprite = Resources.Load<Sprite>("Sprites/Cards/" + e.CommunityCards[i]);
+                }
+
+                smallBlind = e.SmallBlind;
+                potStack.UpdateStack(e.Pot);
+                
                 actionInterface.SetActive(false);
             });
         }
@@ -126,13 +156,13 @@ namespace Table.UI_Managers
 
                 if (focusedSeatIndex >= 0)
                 {
-                    seats[focusedSeatIndex].MarkAsPlaying();
+                    seats[focusedSeatIndex].SetFocused(false);
                 }
 
                 focusedSeatIndex = e.Index;
-                seats[focusedSeatIndex].MarkAsFocused();
+                seats[focusedSeatIndex].SetFocused(true);
             });
-        
+
         //----------------------------------------------------------------
         //                      Player actions
         //----------------------------------------------------------------
@@ -160,7 +190,8 @@ namespace Table.UI_Managers
         private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                seats[e.PlayerIndex].PlaceChipsOnTable(e.RaiseAmount);
+                int raiseAmount = e.RaisedToAmount - seats[e.PlayerIndex].BetStack.Value;
+                seats[e.PlayerIndex].PlaceChipsOnTable(raiseAmount);
                 AudioManager.Instance.Play(Sound.Raise);
             });
 
@@ -181,22 +212,18 @@ namespace Table.UI_Managers
         private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                bool canCheck = e.RequiredBet == 0;
+                bool canCheck = e.RequiredCall == 0;
                 
-                checkButton.interactable = canCheck;
-                callButton.interactable = !canCheck;
+                checkButton.gameObject.SetActive(canCheck);
+                callButton.gameObject.SetActive(!canCheck);
 
-                if (canCheck)
+                if (!canCheck)
                 {
-                    callButton.GetComponentInChildren<TMP_Text>().text = "Call";
+                    requiredCallAmount = e.RequiredCall;
+                    callButtonText.text = "Call " + requiredCallAmount;
                 }
-                else
-                {
-                    requiredCallAmount = e.RequiredBet;
-                    callButton.GetComponentInChildren<TMP_Text>().text = "Call " + requiredCallAmount;
-
-                    SetSliderRange(requiredCallAmount * 2, seats[seatIndex].Stack);
-                }
+                
+                SetRaiseSliderRange(e.MinRaise, e.MaxRaise);
             });
 
         //----------------------------------------------------------------
@@ -206,22 +233,22 @@ namespace Table.UI_Managers
         private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e) => 
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                StartCoroutine(DisplayFlop(e));
                 StartCoroutine(AddBetsToPot());
-                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
             });
         
         private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                StartCoroutine(DisplayCard(communityCards[3], e.Card));
                 StartCoroutine(AddBetsToPot());
-                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
             });
         
         private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                StartCoroutine(DisplayCard(communityCards[4], e.Card));
                 StartCoroutine(AddBetsToPot());
-                SetSliderRange(smallBlind * 2, seats[seatIndex].Stack);
             });
 
         private void ShowdownEventHandler(object sender, ShowdownEventArgs e)
@@ -245,23 +272,35 @@ namespace Table.UI_Managers
         }
 
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e) =>
-            MainThreadExecutor.Instance.Enqueue(() => potStack.UpdateStack(0));
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                HideCommunityCards();
+                potStack.UpdateStack(0);
+            });
 
         //----------------------------------------------------------------
         //                      Helper methods
         //----------------------------------------------------------------
 
-        private void SetSliderRange(int minValue, int maxValue)
+        private void SetRaiseSliderRange(int minRaise, int maxRaise)
         {
-            raiseSlider.minValue = minValue;
-            raiseSlider.maxValue = maxValue;
+            raiseSlider.minValue = minRaise;
+            raiseSlider.maxValue = maxRaise;
             raiseSlider.value = raiseSlider.minValue;
             UpdateRaiseButtonText();
         }
 
         public void UpdateRaiseButtonText()
         {
-            raiseButtonText.text = "Raise " + raiseSlider.value;
+            raiseButtonText.text = "Raise to " + raiseSlider.value;
+        }
+        
+        private void HideCommunityCards()
+        {
+            foreach (var card in communityCards)
+            {
+                card.enabled = false;
+            }
         }
 
         //----------------------------------------------------------------
@@ -283,7 +322,7 @@ namespace Table.UI_Managers
         
         private IEnumerator AddBetsToPot()
         {
-            bool atleastOneBetWasMoved = false;
+            bool anyBetWasMoved = false;
             int potValue = potStack.Value;
             
             foreach (var seat in seats)
@@ -292,11 +331,11 @@ namespace Table.UI_Managers
                 {
                     StartCoroutine(TranslateBetToPot(seat.BetStack));
                     potValue += seat.CurrentBet;
-                    atleastOneBetWasMoved = true;
+                    anyBetWasMoved = true;
                 }
             }
 
-            if (atleastOneBetWasMoved)
+            if (anyBetWasMoved)
             {
                 yield return new WaitForSeconds(0.9f);
 
@@ -325,7 +364,14 @@ namespace Table.UI_Managers
             }
         }
         
-        public static IEnumerator DisplayCard(Image cardImage, string card)
+        private IEnumerator DisplayFlop(FlopReceivedEventArgs e)
+        {
+            yield return StartCoroutine(DisplayCard(communityCards[0], e.Card1));
+            yield return StartCoroutine(DisplayCard(communityCards[1], e.Card2));
+            yield return StartCoroutine(DisplayCard(communityCards[2], e.Card3));
+        }
+        
+        private static IEnumerator DisplayCard(Image cardImage, string card)
         {
             cardImage.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
             cardImage.enabled = true;

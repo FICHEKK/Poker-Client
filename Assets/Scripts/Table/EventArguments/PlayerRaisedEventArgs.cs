@@ -5,12 +5,12 @@ namespace Table.EventArguments
     public class PlayerRaisedEventArgs : EventArgs
     {
         public int PlayerIndex { get; }
-        public int RaiseAmount { get; }
+        public int RaisedToAmount { get; }
 
-        public PlayerRaisedEventArgs(int playerIndex, int raiseAmount)
+        public PlayerRaisedEventArgs(int playerIndex, int raisedToAmount)
         {
             PlayerIndex = playerIndex;
-            RaiseAmount = raiseAmount;
+            RaisedToAmount = raisedToAmount;
         }
     }
 }

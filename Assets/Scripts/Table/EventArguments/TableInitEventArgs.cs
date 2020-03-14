@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using static Table.ServerConnectionHandler;
 
 namespace Table.EventArguments
 {
     public class TableInitEventArgs : EventArgs
     {
+        public readonly List<TablePlayerData> Players;
+        public readonly List<string> CommunityCards;
+        public int PlayerIndex { get; }
+        public int Pot { get; }
         public int SmallBlind { get; }
         public int MaxPlayers { get; }
-        public List<ServerConnectionHandler.TablePlayerData> Players;
 
-        public TableInitEventArgs(int smallBlind, int maxPlayers, List<ServerConnectionHandler.TablePlayerData> players)
+        public TableInitEventArgs(List<TablePlayerData> players, List<string> communityCards,
+            int playerIndex, int pot, int smallBlind, int maxPlayers)
         {
+            Players = players;
+            CommunityCards = communityCards;
+            PlayerIndex = playerIndex;
+            Pot = pot;
             SmallBlind = smallBlind;
             MaxPlayers = maxPlayers;
-            Players = players;
         }
     }
 }
