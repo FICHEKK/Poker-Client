@@ -11,14 +11,13 @@ namespace Table
     public class UserInterfaceManager : MonoBehaviour
     {
         [SerializeField] private Image[] communityCards;
+        [SerializeField] private Transform dealerButton;
 
         [SerializeField] private StackDisplayer potStack;
         [SerializeField] private GameObject actionInterface;
         [SerializeField] private Button checkButton;
         [SerializeField] private Button callButton;
         [SerializeField] private Slider raiseSlider;
-        
-        
         [SerializeField] private TMP_Text callButtonText;
         [SerializeField] private TMP_Text raiseButtonText;
         
@@ -72,6 +71,8 @@ namespace Table
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                dealerButton.transform.position = seats[e.DealerButtonIndex].DealerButton.position;
+                
                 int playerDataIndex = 0;
                 
                 for (int i = 0; i < e.MaxPlayers; i++)
@@ -152,7 +153,11 @@ namespace Table
         private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                actionInterface.SetActive(e.Index == seatIndex);
+                if (e.Index == seatIndex)
+                {
+                    actionInterface.SetActive(true);
+                    AudioManager.Instance.Play(Sound.Bell);
+                }
 
                 if (focusedSeatIndex >= 0)
                 {
@@ -205,6 +210,7 @@ namespace Table
         private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                dealerButton.transform.position = seats[e.DealerButtonIndex].DealerButton.position;
                 seats[e.SmallBlindIndex].PlaceChipsOnTable(smallBlind);
                 seats[e.BigBlindIndex].PlaceChipsOnTable(smallBlind * 2);
             });

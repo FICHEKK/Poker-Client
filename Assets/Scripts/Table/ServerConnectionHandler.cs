@@ -68,7 +68,7 @@ namespace Table
                 () => PlayerIndex?.Invoke(this, new PlayerIndexEventArgs(Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.Blinds,
-                () => BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(Session.ReadInt(), Session.ReadInt())));
+                () => BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.RequiredBet,
                 () => RequiredBetReceived?.Invoke(this, new RequiredBetReceivedEventArgs(Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
@@ -120,6 +120,7 @@ namespace Table
 
         private void InitializeTable()
         {
+            int dealerButtonIndex = Session.ReadInt();
             int smallBlind = Session.ReadInt();
             int maxPlayers = Session.ReadInt();
             
@@ -129,7 +130,7 @@ namespace Table
             int playerIndex = Session.ReadInt();
             int pot = Session.ReadInt();
 
-            TableInit?.Invoke(this, new TableInitEventArgs(players, cards, playerIndex, pot, smallBlind, maxPlayers));
+            TableInit?.Invoke(this, new TableInitEventArgs(players, cards, playerIndex, pot, dealerButtonIndex, smallBlind, maxPlayers));
         }
 
         private static List<TablePlayerData> ReceivePlayerList()
