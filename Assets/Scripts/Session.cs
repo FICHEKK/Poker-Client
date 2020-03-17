@@ -7,6 +7,7 @@ public static class Session
     public static string Username { get; set; }
     public static int ChipCount { get; set; }
     public static int WinCount { get; set; }
+    public static int EloRating { get; set; }
 
     public static TcpClient Client { get; set; }
     public static StreamReader Reader { get; set; }

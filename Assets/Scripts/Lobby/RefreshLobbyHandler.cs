@@ -10,6 +10,7 @@ namespace Lobby
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text chipCountText;
         [SerializeField] private TMP_Text winCountText;
+        [SerializeField] private TMP_Text eloRatingText;
         [SerializeField] private GameObject grid;
         [SerializeField] private GameObject tableButton;
 
@@ -58,10 +59,12 @@ namespace Lobby
             Session.Writer.WriteLine(Session.Username);
             Session.ChipCount = Session.ReadInt();
             Session.WinCount = Session.ReadInt();
+            Session.EloRating = Session.ReadInt();
 
             usernameText.text = Session.Username;
             chipCountText.text = "Chips: " + Session.ChipCount;
             winCountText.text = "Wins: " + Session.WinCount;
+            eloRatingText.text = "Rating: " + Session.EloRating;
         }
 
         public void RefreshTableList()

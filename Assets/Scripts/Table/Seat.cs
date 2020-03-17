@@ -13,12 +13,13 @@ namespace Table
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text stackText;
         [SerializeField] private StackDisplayer betStack;
+        [SerializeField] private Transform dealerButton;
 
         public int Stack { get; private set; }
         public int CurrentBet => betStack.Value;
         public bool IsEmpty => stackText.text == string.Empty;
         public StackDisplayer BetStack => betStack;
-        public Transform DealerButton;
+        public Transform DealerButton => dealerButton;
 
         public void SetUsername(string username)
         {

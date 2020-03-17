@@ -107,7 +107,7 @@ MonoBehaviour:
   usernameText: {fileID: 6217800296919027431}
   stackText: {fileID: 5501659298238218599}
   betStack: {fileID: 6605511339326496752}
-  DealerButton: {fileID: 1345421855403109733}
+  dealerButton: {fileID: 1345421855403109733}
 --- !u!1 &3324930906378311002
 GameObject:
   m_ObjectHideFlags: 0
