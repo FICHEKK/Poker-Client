@@ -29,6 +29,7 @@ namespace Table
         public event EventHandler<RiverReceivedEventArgs> RiverReceived;
         public event EventHandler<ShowdownEventArgs> Showdown;
         public event EventHandler<RoundFinishedEventArgs> RoundFinished;
+        public event EventHandler<CardsRevealedEventArgs> CardsRevealed;
 
         private readonly Dictionary<ServerResponse, Action> responseToAction = new Dictionary<ServerResponse, Action>();
 
@@ -81,6 +82,25 @@ namespace Table
             
             responseToAction.Add(ServerResponse.Showdown,
                 () => Showdown?.Invoke(this, new ShowdownEventArgs(Session.ReadIntList())));
+            
+            responseToAction.Add(ServerResponse.CardsReveal,
+                () =>
+                {
+                    int count = Session.ReadInt();
+
+                    var indexes = new List<int>(count);
+                    var firstCards = new List<string>(count);
+                    var secondCards = new List<string>(count);
+                    
+                    for (int i = 0; i < count; i++)
+                    {
+                        indexes.Add(Session.ReadInt());
+                        firstCards.Add(Session.ReadLine());
+                        secondCards.Add(Session.ReadLine());
+                    }
+                    
+                    CardsRevealed?.Invoke(this, new CardsRevealedEventArgs(indexes, firstCards, secondCards));
+                });
         }
 
         private void Start()

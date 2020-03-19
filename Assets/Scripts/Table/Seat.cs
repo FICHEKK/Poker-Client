@@ -20,6 +20,8 @@ namespace Table
         public bool IsEmpty => stackText.text == string.Empty;
         public StackDisplayer BetStack => betStack;
         public Transform DealerButton => dealerButton;
+        public Image Card1 => card1;
+        public Image Card2 => card2;
 
         public void SetUsername(string username)
         {

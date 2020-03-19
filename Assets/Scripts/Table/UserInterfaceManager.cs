@@ -60,7 +60,22 @@ namespace Table
             handler.RiverReceived += RiverReceivedEventHandler;
             handler.Showdown += ShowdownEventHandler;
 
+            handler.CardsRevealed += CardsRevealedEventHandler;
+
             handler.RoundFinished += RoundFinishedEventHandler;
+        }
+
+        private void CardsRevealedEventHandler(object sender, CardsRevealedEventArgs e)
+        {
+            MainThreadExecutor.Instance.Enqueue(() =>
+            {
+                for (int i = 0; i < e.Indexes.Count; i++)
+                {
+                    if(e.Indexes[i] == seatIndex) continue;
+                    StartCoroutine(DisplayCard(seats[e.Indexes[i]].Card1, e.FirstCards[i]));
+                    StartCoroutine(DisplayCard(seats[e.Indexes[i]].Card2, e.SecondCards[i]));
+                }
+            });
         }
 
         //----------------------------------------------------------------
