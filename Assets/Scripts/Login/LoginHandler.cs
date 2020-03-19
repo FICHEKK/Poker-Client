@@ -58,6 +58,7 @@ namespace Login
 
             if (response == ServerLoginResponse.Success)
             {
+                Session.HasJustLoggedIn = true;
                 GetComponent<SceneLoader>().LoadScene();
                 return;
             }

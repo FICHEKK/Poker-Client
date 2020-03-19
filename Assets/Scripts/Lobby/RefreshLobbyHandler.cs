@@ -31,6 +31,8 @@ namespace Lobby
 
         private void CheckForLoginReward()
         {
+            if (!Session.HasJustLoggedIn) return;
+            
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.LoginReward);
             int responseCode = Session.Reader.Read();
             if (responseCode == -1) return;
@@ -51,6 +53,8 @@ namespace Lobby
                 rewardMessageText.text = "Your next reward will be in:";
                 rewardValueText.text = Session.ReadLine();
             }
+
+            Session.HasJustLoggedIn = false;
         }
 
         private void DisplayClientData()

@@ -210,9 +210,16 @@ namespace Table
         private void BlindsReceivedEventHandler(object sender, BlindsReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                foreach (var index in e.JustJoinedPlayerIndexes)
+                    seats[index].PlaceChipsOnTable(smallBlind * 2);
+                
                 dealerButton.transform.position = seats[e.DealerButtonIndex].DealerButton.position;
-                seats[e.SmallBlindIndex].PlaceChipsOnTable(smallBlind);
-                seats[e.BigBlindIndex].PlaceChipsOnTable(smallBlind * 2);
+                
+                if(seats[e.SmallBlindIndex].BetStack.Value == 0)
+                    seats[e.SmallBlindIndex].PlaceChipsOnTable(smallBlind);
+                
+                if(seats[e.BigBlindIndex].BetStack.Value == 0)
+                    seats[e.BigBlindIndex].PlaceChipsOnTable(smallBlind * 2);
             });
 
         private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e) =>
@@ -440,7 +447,6 @@ namespace Table
         public void Leave()
         {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.LeaveTable);
-            GetComponent<SceneLoader>().LoadScene();
         }
     }
 }

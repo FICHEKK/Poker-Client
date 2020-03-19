@@ -68,7 +68,7 @@ namespace Table
                 () => PlayerIndex?.Invoke(this, new PlayerIndexEventArgs(Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.Blinds,
-                () => BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
+                () => BlindsReceived?.Invoke(this, new BlindsReceivedEventArgs(Session.ReadIntList(), Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.RequiredBet,
                 () => RequiredBetReceived?.Invoke(this, new RequiredBetReceivedEventArgs(Session.ReadInt(), Session.ReadInt(), Session.ReadInt())));
@@ -80,18 +80,7 @@ namespace Table
                 () => PlayerLeft?.Invoke(this, new PlayerLeftEventArgs(Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.Showdown,
-                () =>
-                {
-                    int winnerCount = Session.ReadInt();
-                    List<int> winnerIndexes = new List<int>();
-
-                    for (int i = 0; i < winnerCount; i++)
-                    {
-                        winnerIndexes.Add(Session.ReadInt());
-                    }
-
-                    Showdown?.Invoke(this, new ShowdownEventArgs(winnerIndexes));
-                });
+                () => Showdown?.Invoke(this, new ShowdownEventArgs(Session.ReadIntList())));
         }
 
         private void Start()
@@ -114,8 +103,18 @@ namespace Table
 
                 flag = Session.Reader.Read();
 
-                if ((ServerResponse) flag == ServerResponse.LeaveTableSuccess) break;
+                if ((ServerResponse) flag == ServerResponse.WaitForMilliseconds)
+                {
+                    Thread.Sleep(Session.ReadInt());
+                    flag = Session.Reader.Read();
+                }
+                else if ((ServerResponse) flag == ServerResponse.LeaveTableSuccess)
+                {
+                    break;
+                }
             }
+            
+            MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
         }
 
         private void InitializeTable()
