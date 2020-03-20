@@ -45,16 +45,11 @@ namespace Table
             SetStack(Stack + amount);
         }
 
-        public void ShowCards(string c1, string c2)
-        {
-            ToggleCards(true);
-            card1.sprite = Resources.Load<Sprite>("Sprites/Cards/" + c1);
-            card2.sprite = Resources.Load<Sprite>("Sprites/Cards/" + c2);
-        }
-
         public void HideCards()
         {
-            ShowCards("Back", "Back");
+            ToggleCards(true);
+            card1.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
+            card2.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
         }
 
         //----------------------------------------------------------------

@@ -17,11 +17,15 @@ namespace Table
         [SerializeField] private GameObject actionInterface;
         [SerializeField] private Button checkButton;
         [SerializeField] private Button callButton;
+        [SerializeField] private Button foldButton;
+        [SerializeField] private Button raiseButton;
+        [SerializeField] private Button allInButton;
         [SerializeField] private Slider raiseSlider;
         [SerializeField] private TMP_Text callButtonText;
         [SerializeField] private TMP_Text raiseButtonText;
         
         [SerializeField] private List<Seat> seats;
+        private readonly StackDisplayer[] sidePotStacks = new StackDisplayer[10];
 
         private int smallBlind;
         private int seatIndex;
@@ -32,10 +36,11 @@ namespace Table
         private void Awake()
         {
             foreach (var seat in seats)
-            {
                 seat.MarkAsEmpty();
-            }
-            
+
+            for (int i = 0; i < 10; i++)
+                sidePotStacks[i] = Instantiate(potStack.gameObject, potStack.gameObject.transform.parent).GetComponent<StackDisplayer>();
+
             HideCommunityCards();
 
             var handler = GetComponentInParent<ServerConnectionHandler>();
@@ -144,9 +149,8 @@ namespace Table
                     seat.MarkAsPlaying();
                     seat.HideCards();
                 }
-                
-                seats[seatIndex].ShowCards(e.Card1, e.Card2);
-                AudioManager.Instance.Play(Sound.DeckShuffle);
+
+                StartCoroutine(DisplayHand(e));
             });
 
         private void PlayerJoinedEventHandler(object sender, PlayerJoinedEventArgs e) =>
@@ -210,15 +214,14 @@ namespace Table
         private void PlayerRaisedEventHandler(object sender, PlayerRaisedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                int raiseAmount = e.RaisedToAmount - seats[e.PlayerIndex].BetStack.Value;
-                seats[e.PlayerIndex].PlaceChipsOnTable(raiseAmount);
+                seats[e.PlayerIndex].PlaceChipsOnTable(e.RaisedToAmount - seats[e.PlayerIndex].BetStack.Value);
                 AudioManager.Instance.Play(Sound.Raise);
             });
 
         private void PlayerAllInEventHandler(object sender, PlayerAllInEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                seats[e.PlayerIndex].PlaceChipsOnTable(e.AllInAmount);
+                seats[e.PlayerIndex].PlaceChipsOnTable(e.AllInAmount - seats[e.PlayerIndex].BetStack.Value);
                 AudioManager.Instance.Play(Sound.AllIn);
             });
 
@@ -240,18 +243,28 @@ namespace Table
         private void RequiredBetReceivedEventHandler(object sender, RequiredBetReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                bool canCheck = e.RequiredCall == 0;
+                requiredCallAmount = e.RequiredCall;
+                bool canCheck = requiredCallAmount == 0;
                 
                 checkButton.gameObject.SetActive(canCheck);
                 callButton.gameObject.SetActive(!canCheck);
-
+                foldButton.gameObject.SetActive(!canCheck);
+                
                 if (!canCheck)
                 {
-                    requiredCallAmount = e.RequiredCall;
                     callButtonText.text = "Call " + requiredCallAmount;
                 }
+
+                bool allInRequired = requiredCallAmount == seats[seatIndex].Stack;
                 
-                SetRaiseSliderRange(e.MinRaise, e.MaxRaise);
+                raiseButton.gameObject.SetActive(!allInRequired);
+                allInButton.gameObject.SetActive(!allInRequired);
+                raiseSlider.gameObject.SetActive(!allInRequired);
+
+                if (!allInRequired)
+                {
+                    SetRaiseSliderRange(e.MinRaise, e.MaxRaise);
+                }
             });
 
         //----------------------------------------------------------------
@@ -284,18 +297,7 @@ namespace Table
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 actionInterface.SetActive(false);
-
-                if (e.WinnerIndexes.Count == 1)
-                {
-                    StartCoroutine(TranslatePotToWinningPlayer(e.WinnerIndexes[0]));
-                }
-                else
-                {
-                    foreach (int winnerIndex in e.WinnerIndexes)
-                    {
-                        seats[winnerIndex].GiveChips(potStack.Value / e.WinnerIndexes.Count);
-                    }
-                }
+                StartCoroutine(SplitWholePotToWinners(e.SidePots));
             });
         }
 
@@ -347,7 +349,41 @@ namespace Table
             potStack.UpdateStack(0);
             potStack.transform.position = potStack.OriginalPosition;
         }
-        
+
+        private IEnumerator SplitWholePotToWinners(List<ShowdownEventArgs.Pot> sidePots)
+        {
+            yield return StartCoroutine(AddBetsToPot());
+            yield return new WaitForSeconds(1f);
+            
+            foreach (var sidePot in sidePots)
+            {
+                yield return StartCoroutine(SplitSidePotToWinners(sidePot));
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
+        private IEnumerator SplitSidePotToWinners(ShowdownEventArgs.Pot sidePot)
+        {
+            potStack.UpdateStack(potStack.Value - sidePot.Value);
+            int winAmount = sidePot.Value / sidePot.WinnerIndexes.Count;
+
+            foreach (var winnerIndex in sidePot.WinnerIndexes)
+            {
+                sidePotStacks[winnerIndex].UpdateStack(winAmount);
+                StartCoroutine(TranslateGameObject(sidePotStacks[winnerIndex].transform, seats[winnerIndex].transform.position, 0.5f));
+            }
+
+            yield return new WaitForSeconds(1f);
+            AudioManager.Instance.Play(Sound.Raise);
+
+            foreach (var winnerIndex in sidePot.WinnerIndexes)
+            {
+                seats[winnerIndex].GiveChips(winAmount);
+                sidePotStacks[winnerIndex].UpdateStack(0);
+                sidePotStacks[winnerIndex].transform.position = potStack.OriginalPosition;
+            }
+        }
+
         private IEnumerator AddBetsToPot()
         {
             bool anyBetWasMoved = false;
@@ -390,6 +426,14 @@ namespace Table
                 subject.Translate(direction);
                 yield return new WaitForSeconds(animationDuration / timeSlices);
             }
+        }
+        
+        private IEnumerator DisplayHand(HandReceivedEventArgs e)
+        {
+            AudioManager.Instance.Play(Sound.DeckShuffle);
+            yield return new WaitForSeconds(0.5f);
+            yield return StartCoroutine(DisplayCard(seats[seatIndex].Card1, e.Card1));
+            yield return StartCoroutine(DisplayCard(seats[seatIndex].Card2, e.Card2));
         }
         
         private IEnumerator DisplayFlop(FlopReceivedEventArgs e)

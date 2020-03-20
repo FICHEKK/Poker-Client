@@ -81,7 +81,16 @@ namespace Table
                 () => PlayerLeft?.Invoke(this, new PlayerLeftEventArgs(Session.ReadInt())));
             
             responseToAction.Add(ServerResponse.Showdown,
-                () => Showdown?.Invoke(this, new ShowdownEventArgs(Session.ReadIntList())));
+                () =>
+                {
+                    int sidePotCount = Session.ReadInt();
+                    var sidePots = new List<ShowdownEventArgs.Pot>(sidePotCount);
+                    
+                    for (int i = 0; i < sidePotCount; i++)
+                        sidePots.Add(new ShowdownEventArgs.Pot(Session.ReadInt(), Session.ReadIntList()));
+
+                    Showdown?.Invoke(this, new ShowdownEventArgs(sidePots));
+                });
             
             responseToAction.Add(ServerResponse.CardsReveal,
                 () =>

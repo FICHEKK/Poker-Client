@@ -707,6 +707,9 @@ MonoBehaviour:
   actionInterface: {fileID: 80907512}
   checkButton: {fileID: 465415330}
   callButton: {fileID: 883179570}
+  foldButton: {fileID: 481665051}
+  raiseButton: {fileID: 1458787408}
+  allInButton: {fileID: 859045181}
   raiseSlider: {fileID: 461230160}
   callButtonText: {fileID: 996712345}
   raiseButtonText: {fileID: 1959472663}
@@ -721,6 +724,8 @@ MonoBehaviour:
   - {fileID: 1364821687}
   - {fileID: 1091424556}
   - {fileID: 1997904354}
+  stackPrefab: {fileID: 1031116153787515033, guid: 44b91ddcc92a4da4b84724a688398c08,
+    type: 3}
 --- !u!4 &269078849
 Transform:
   m_ObjectHideFlags: 0
