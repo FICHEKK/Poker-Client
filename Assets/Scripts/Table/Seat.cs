@@ -6,20 +6,22 @@ namespace Table
 {
     public class Seat : MonoBehaviour
     {
+        private const float ChatMessageHideDelayInSeconds = 5f;
+        private float lastMessageSentTime;
+        
         [SerializeField] private Image card1;
         [SerializeField] private Image card2;
         [SerializeField] private Image frame;
         [SerializeField] private Image frameBorder;
         [SerializeField] private TMP_Text usernameText;
         [SerializeField] private TMP_Text stackText;
-        [SerializeField] private StackDisplayer betStack;
-        [SerializeField] private Transform dealerButton;
+        [SerializeField] private TMP_Text chatText;
+        public StackDisplayer BetStack;
+        public Transform DealerButton;
 
         public int Stack { get; private set; }
-        public int CurrentBet => betStack.Value;
+        public int CurrentBet => BetStack.Value;
         public bool IsEmpty => stackText.text == string.Empty;
-        public StackDisplayer BetStack => betStack;
-        public Transform DealerButton => dealerButton;
         public Image Card1 => card1;
         public Image Card2 => card2;
 
@@ -34,10 +36,26 @@ namespace Table
             stackText.text = stack.ToString();
         }
 
+        public void SetChatMessage(string message)
+        {
+            chatText.text = message;
+            lastMessageSentTime = Time.time;
+        }
+
+        private void Update()
+        {
+            if (string.IsNullOrEmpty(chatText.text)) return;
+
+            if (Time.time > lastMessageSentTime + ChatMessageHideDelayInSeconds)
+            {
+                chatText.text = string.Empty;
+            }
+        }
+
         public void PlaceChipsOnTable(int amount)
         {
             SetStack(Stack - amount);
-            betStack.UpdateStack(betStack.Value + amount);
+            BetStack.UpdateStack(BetStack.Value + amount);
         }
 
         public void GiveChips(int amount)

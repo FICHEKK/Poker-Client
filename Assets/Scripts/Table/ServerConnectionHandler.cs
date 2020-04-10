@@ -30,6 +30,7 @@ namespace Table
         public event EventHandler<ShowdownEventArgs> Showdown;
         public event EventHandler<RoundFinishedEventArgs> RoundFinished;
         public event EventHandler<CardsRevealedEventArgs> CardsRevealed;
+        public event EventHandler<ChatMessageReceivedEventArgs> ChatMessageReceived;
 
         private readonly Dictionary<ServerResponse, Action> responseToAction = new Dictionary<ServerResponse, Action>();
 
@@ -110,6 +111,9 @@ namespace Table
                     
                     CardsRevealed?.Invoke(this, new CardsRevealedEventArgs(indexes, firstCards, secondCards));
                 });
+            
+            responseToAction.Add(ServerResponse.ChatMessage,
+                () => ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs(Session.ReadInt(), Session.ReadLine())));
         }
 
         private void Start()

@@ -23,6 +23,9 @@ namespace Table
         [SerializeField] private Slider raiseSlider;
         [SerializeField] private TMP_Text callButtonText;
         [SerializeField] private TMP_Text raiseButtonText;
+
+        [SerializeField] private TMP_InputField chatInputField;
+        [SerializeField] private Button chatSendButton;
         
         [SerializeField] private List<Seat> seats;
         private readonly StackDisplayer[] sidePotStacks = new StackDisplayer[10];
@@ -35,6 +38,8 @@ namespace Table
 
         private void Awake()
         {
+            chatInputField.onValueChanged.AddListener(text => chatSendButton.interactable = !string.IsNullOrEmpty(text));
+            
             foreach (var seat in seats)
                 seat.MarkAsEmpty();
 
@@ -68,6 +73,13 @@ namespace Table
             handler.CardsRevealed += CardsRevealedEventHandler;
 
             handler.RoundFinished += RoundFinishedEventHandler;
+
+            handler.ChatMessageReceived += ChatMessageReceivedEventHandler;
+        }
+
+        private void ChatMessageReceivedEventHandler(object sender, ChatMessageReceivedEventArgs e)
+        {
+            MainThreadExecutor.Instance.Enqueue(() => seats[e.PlayerIndex].SetChatMessage(e.Message));
         }
 
         private void CardsRevealedEventHandler(object sender, CardsRevealedEventArgs e)
@@ -506,6 +518,13 @@ namespace Table
         public void Leave()
         {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.LeaveTable);
+        }
+
+        public void SendChatMessage()
+        {
+            Session.Client.GetStream().WriteByte((byte) ClientRequest.SendChatMessage);
+            Session.Writer.WriteLine(chatInputField.text);
+            chatInputField.text = string.Empty;
         }
     }
 }
