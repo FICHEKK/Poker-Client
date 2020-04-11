@@ -1,4 +1,6 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,6 +26,8 @@ namespace Table
         public bool IsEmpty => stackText.text == string.Empty;
         public Image Card1 => card1;
         public Image Card2 => card2;
+
+        private Coroutine animateFrameBorderCoroutine;
 
         public void SetUsername(string username)
         {
@@ -102,7 +106,27 @@ namespace Table
 
         public void SetFocused(bool focused)
         {
+            if (animateFrameBorderCoroutine != null)
+                StopCoroutine(animateFrameBorderCoroutine);
+            
             frameBorder.enabled = focused;
+            
+            if (focused)
+            {
+                frameBorder.fillAmount = 1;
+                animateFrameBorderCoroutine = StartCoroutine(AnimateFrameBorder());
+            }
+        }
+
+        private IEnumerator AnimateFrameBorder()
+        {
+            const float decreasePerFrame = 1 / TableConstant.PlayerTurnDuration;
+            
+            while (frameBorder.enabled && frameBorder.fillAmount > 0)
+            {
+                frameBorder.fillAmount -= decreasePerFrame * Time.deltaTime;
+                yield return null;
+            }
         }
 
         //----------------------------------------------------------------

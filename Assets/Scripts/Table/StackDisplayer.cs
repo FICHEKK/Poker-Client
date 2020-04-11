@@ -24,7 +24,7 @@ namespace Table
 
         public void Awake()
         {
-            OriginalPosition = transform.position;
+            OriginalPosition = transform.localPosition;
             
             if (_chipValueToSprite == null)
             {

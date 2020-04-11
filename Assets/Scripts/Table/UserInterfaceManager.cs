@@ -308,6 +308,9 @@ namespace Table
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                if (focusedSeatIndex >= 0)
+                    seats[focusedSeatIndex].SetFocused(false);
+                    
                 actionInterface.SetActive(false);
                 StartCoroutine(SplitWholePotToWinners(e.SidePots));
             });
@@ -349,19 +352,6 @@ namespace Table
         //                         Coroutine
         //----------------------------------------------------------------
 
-        private IEnumerator TranslatePotToWinningPlayer(int winnerIndex)
-        {
-            yield return StartCoroutine(AddBetsToPot());
-            yield return new WaitForSeconds(1f);
-            yield return StartCoroutine(TranslateGameObject(potStack.transform, seats[winnerIndex].transform.position, 0.5f));
-            
-            seats[winnerIndex].GiveChips(potStack.Value);
-            AudioManager.Instance.Play(Sound.Raise);
-            
-            potStack.UpdateStack(0);
-            potStack.transform.position = potStack.OriginalPosition;
-        }
-
         private IEnumerator SplitWholePotToWinners(List<ShowdownEventArgs.Pot> sidePots)
         {
             yield return StartCoroutine(AddBetsToPot());
@@ -392,7 +382,7 @@ namespace Table
             {
                 seats[winnerIndex].GiveChips(winAmount);
                 sidePotStacks[winnerIndex].UpdateStack(0);
-                sidePotStacks[winnerIndex].transform.position = potStack.OriginalPosition;
+                sidePotStacks[winnerIndex].transform.localPosition = potStack.OriginalPosition;
             }
         }
 
@@ -425,7 +415,7 @@ namespace Table
             yield return StartCoroutine(TranslateGameObject(bet.transform, potStack.transform.position, 0.5f));
             
             bet.UpdateStack(0);
-            bet.transform.position = bet.OriginalPosition;
+            bet.transform.localPosition = bet.OriginalPosition;
         }
 
         private static IEnumerator TranslateGameObject(Transform subject, Vector3 destination, float animationDuration)
