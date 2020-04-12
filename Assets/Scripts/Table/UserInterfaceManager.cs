@@ -26,6 +26,8 @@ namespace Table
 
         [SerializeField] private TMP_InputField chatInputField;
         [SerializeField] private Button chatSendButton;
+
+        [SerializeField] private TMP_Text winningHandText;
         
         [SerializeField] private List<Seat> seats;
         private readonly StackDisplayer[] sidePotStacks = new StackDisplayer[10];
@@ -48,7 +50,7 @@ namespace Table
 
             HideCommunityCards();
 
-            var handler = GetComponentInParent<ServerConnectionHandler>();
+            var handler = GetComponentInParent<ResponseProcessors.ServerConnectionHandler>();
 
             handler.TableInit += TableInitEventHandler;
             handler.HandReceived += HandReceivedEventHandler;
@@ -321,6 +323,7 @@ namespace Table
             {
                 HideCommunityCards();
                 potStack.UpdateStack(0);
+                winningHandText.text = string.Empty;
             });
 
         //----------------------------------------------------------------
@@ -359,6 +362,7 @@ namespace Table
             
             foreach (var sidePot in sidePots)
             {
+                winningHandText.text = sidePot.BestHand;
                 yield return StartCoroutine(SplitSidePotToWinners(sidePot));
                 yield return new WaitForSeconds(1f);
             }

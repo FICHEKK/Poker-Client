@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static Table.ServerConnectionHandler;
+using static Table.ResponseProcessors.ServerConnectionHandler;
 
 namespace Table.EventArguments
 {

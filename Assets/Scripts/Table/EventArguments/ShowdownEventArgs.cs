@@ -16,11 +16,13 @@ namespace Table.EventArguments
         {
             public int Value { get; }
             public List<int> WinnerIndexes { get; }
+            public string BestHand { get; }
 
-            public Pot(int value, List<int> winnerIndexes)
+            public Pot(int value, List<int> winnerIndexes, string bestHand)
             {
                 Value = value;
                 WinnerIndexes = winnerIndexes;
+                BestHand = bestHand;
             }
         }
     }
