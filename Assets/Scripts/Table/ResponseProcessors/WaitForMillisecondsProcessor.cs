@@ -1,4 +1,6 @@
-﻿namespace Table.ResponseProcessors
+﻿using System.Threading;
+
+namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
@@ -14,9 +16,7 @@
 
             public void ProcessResponse(ServerConnectionHandler handler)
             {
-                handler.isWaitingMode = true;
-                handler.waitingModeTimer.Interval = milliseconds;
-                handler.waitingModeTimer.Start();
+                Thread.Sleep(milliseconds);
             }
         }
     }

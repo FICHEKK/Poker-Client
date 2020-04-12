@@ -111,15 +111,15 @@ namespace Table
                 
                 for (int i = 0; i < e.MaxPlayers; i++)
                 {
-                    if (playerDataIndex >= e.Players.Count) break;
+                    if (playerDataIndex >= e.Indexes.Count) break;
                     
-                    if (e.Players[playerDataIndex].Index == i)
+                    if (e.Indexes[playerDataIndex] == i)
                     {
-                        seats[i].SetUsername(e.Players[playerDataIndex].Username);
-                        seats[i].SetStack(e.Players[playerDataIndex].Stack);
-                        seats[i].BetStack.UpdateStack(e.Players[playerDataIndex].Bet);
+                        seats[i].SetUsername(e.Usernames[playerDataIndex]);
+                        seats[i].SetStack(e.Stacks[playerDataIndex]);
+                        seats[i].BetStack.UpdateStack(e.Bets[playerDataIndex]);
 
-                        if (e.Players[playerDataIndex].Folded)
+                        if (e.Folds[playerDataIndex])
                         {
                             seats[i].MarkAsWaiting();
                         }
@@ -306,8 +306,7 @@ namespace Table
                 StartCoroutine(AddBetsToPot());
             });
 
-        private void ShowdownEventHandler(object sender, ShowdownEventArgs e)
-        {
+        private void ShowdownEventHandler(object sender, ShowdownEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 if (focusedSeatIndex >= 0)
@@ -316,7 +315,7 @@ namespace Table
                 actionInterface.SetActive(false);
                 StartCoroutine(SplitWholePotToWinners(e.SidePots));
             });
-        }
+        
 
         private void RoundFinishedEventHandler(object sender, RoundFinishedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>

@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Table.EventArguments;
 using UnityEngine;
-using Timer = System.Timers.Timer;
 
 namespace Table.ResponseProcessors
 {
@@ -35,22 +35,12 @@ namespace Table.ResponseProcessors
 
         private readonly Dictionary<ServerResponse, IServerResponseProcessor> responseToProcessor = new Dictionary<ServerResponse, IServerResponseProcessor>();
         
-        private bool isWaitingMode;
-        private readonly Queue<Action<ServerConnectionHandler>> waitingModeQueue = new Queue<Action<ServerConnectionHandler>>();
-        private readonly Timer waitingModeTimer = new Timer();
+        private bool shouldProcessResponses = true;
+        private readonly BlockingCollection<Action<ServerConnectionHandler>> actionBlockingQueue = new BlockingCollection<Action<ServerConnectionHandler>>();
 
         private void Awake()
         {
-            waitingModeTimer.Elapsed += (sender, e) =>
-            {
-                while (waitingModeQueue.Count > 0)
-                {
-                    waitingModeQueue.Dequeue()(this);
-                }
-                
-                isWaitingMode = false;
-            };
-                
+            responseToProcessor.Add(ServerResponse.TableState, new TableStateProcessor());
             responseToProcessor.Add(ServerResponse.Hand, new HandProcessor());
             responseToProcessor.Add(ServerResponse.Flop, new FlopProcessor());
             responseToProcessor.Add(ServerResponse.Turn, new TurnProcessor());
@@ -75,12 +65,11 @@ namespace Table.ResponseProcessors
         private void Start()
         {
             new Thread(HandleServerConnection).Start();
+            new Thread(HandleWaitableResponses).Start();
         }
 
         private void HandleServerConnection()
         {
-            InitializeTable();
-
             int flag = Session.Reader.Read();
 
             while (flag != -1 && (ServerResponse) flag != ServerResponse.LeaveTableSuccess)
@@ -89,9 +78,9 @@ namespace Table.ResponseProcessors
                 {
                     processor.ReadPayloadData();
                     
-                    if (isWaitingMode && processor.CanWait)
+                    if (processor.CanWait)
                     {
-                        waitingModeQueue.Enqueue(processor.ProcessResponse);
+                        actionBlockingQueue.Add(processor.ProcessResponse);
                     }
                     else
                     {
@@ -101,74 +90,16 @@ namespace Table.ResponseProcessors
 
                 flag = Session.Reader.Read();
             }
-            
-            waitingModeTimer.Stop();
+
+            shouldProcessResponses = false;
             MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
         }
 
-        private void InitializeTable()
+        private void HandleWaitableResponses()
         {
-            int dealerButtonIndex = Session.ReadInt();
-            int smallBlind = Session.ReadInt();
-            int maxPlayers = Session.ReadInt();
-            
-            var players = ReceivePlayerList();
-            var cards = ReceiveCommunityCardList();
-            
-            int playerIndex = Session.ReadInt();
-            int pot = Session.ReadInt();
-
-            TableInit?.Invoke(this, new TableInitEventArgs(players, cards, playerIndex, pot, dealerButtonIndex, smallBlind, maxPlayers));
-        }
-
-        private static List<TablePlayerData> ReceivePlayerList()
-        {
-            int playerCount = Session.ReadInt();
-            var players = new List<TablePlayerData>(playerCount);
-
-            for (int i = 0; i < playerCount; i++)
+            while (shouldProcessResponses)
             {
-                int index = Session.ReadInt();
-                string username = Session.ReadLine();
-                int stack = Session.ReadInt();
-                int bet = Session.ReadInt();
-                bool folded = Session.ReadBool();
-                
-                players.Add(new TablePlayerData(index, username, stack, bet, folded));
-            }
-
-            return players;
-        }
-
-        private static List<string> ReceiveCommunityCardList()
-        {
-            int cardCount = Session.ReadInt();
-            var cards = new List<string>(cardCount);
-
-            for (int i = 0; i < cardCount; i++)
-            {
-                string card = Session.ReadLine();
-                cards.Add(card);
-            }
-
-            return cards;
-        }
-
-        public class TablePlayerData
-        {
-            public int Index { get; }
-            public string Username { get; }
-            public int Stack { get; }
-            public int Bet { get; }
-            public bool Folded { get; }
-
-            public TablePlayerData(int index, string username, int stack, int bet, bool folded)
-            {
-                Index = index;
-                Username = username;
-                Stack = stack;
-                Bet = bet;
-                Folded = folded;
+                actionBlockingQueue.Take()(this);
             }
         }
     }
