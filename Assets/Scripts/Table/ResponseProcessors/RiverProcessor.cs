@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class RiverProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private string card;
 
             public void ReadPayloadData()

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -12,83 +10,54 @@ namespace Table.ResponseProcessors
     /// </summary>
     public sealed partial class ServerConnectionHandler : MonoBehaviour
     {
-        /// <summary>Maps server response to factory method for creating the appropriate response processor.</summary>
-        private readonly Dictionary<ServerResponse, Func<IServerResponseProcessor>> responseToProcessorFactory
-            = new Dictionary<ServerResponse, Func<IServerResponseProcessor>>();
-
-        /// <summary>A blocking queue used to store unprocessed server responses.</summary>
-        private readonly BlockingCollection<Action<ServerConnectionHandler>> actionBlockingQueue 
-            = new BlockingCollection<Action<ServerConnectionHandler>>();
-
-        /// <summary>A dummy action that is used to indicate the end of the consuming.</summary>
-        private static readonly Action<ServerConnectionHandler> PoisonPill = handler => {};
+        /// <summary>Maps server response to the appropriate processor for resolving the server response.</summary>
+        private readonly Dictionary<ServerResponse, IServerResponseProcessor> responseToProcessor
+            = new Dictionary<ServerResponse, IServerResponseProcessor>();
 
         private void Awake()
         {
-            responseToProcessorFactory.Add(ServerResponse.TableState, () => new TableStateProcessor());
-            responseToProcessorFactory.Add(ServerResponse.Hand, () => new HandProcessor());
-            responseToProcessorFactory.Add(ServerResponse.Flop, () => new FlopProcessor());
-            responseToProcessorFactory.Add(ServerResponse.Turn, () => new TurnProcessor());
-            responseToProcessorFactory.Add(ServerResponse.River, () => new RiverProcessor());
-            responseToProcessorFactory.Add(ServerResponse.RoundFinished, () => new RoundFinishedProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerChecked, () => new PlayerCheckedProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerCalled, () => new PlayerCalledProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerFolded, () => new PlayerFoldedProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerRaised, () => new PlayerRaisedProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerAllIn, () => new PlayerAllInProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerIndex, () => new PlayerIndexProcessor());
-            responseToProcessorFactory.Add(ServerResponse.Blinds, () => new BlindsProcessor());
-            responseToProcessorFactory.Add(ServerResponse.RequiredBet, () => new RequiredBetProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerJoined, () => new PlayerJoinedProcessor());
-            responseToProcessorFactory.Add(ServerResponse.PlayerLeft, () => new PlayerLeftProcessor());
-            responseToProcessorFactory.Add(ServerResponse.Showdown, () => new ShowdownProcessor());
-            responseToProcessorFactory.Add(ServerResponse.CardsReveal, () => new CardsRevealProcessor());
-            responseToProcessorFactory.Add(ServerResponse.ChatMessage, () => new ChatMessageProcessor());
-            responseToProcessorFactory.Add(ServerResponse.WaitForMilliseconds, () => new WaitForMillisecondsProcessor());
+            responseToProcessor.Add(ServerResponse.TableState, new TableStateProcessor());
+            responseToProcessor.Add(ServerResponse.Hand, new HandProcessor());
+            responseToProcessor.Add(ServerResponse.Flop, new FlopProcessor());
+            responseToProcessor.Add(ServerResponse.Turn, new TurnProcessor());
+            responseToProcessor.Add(ServerResponse.River, new RiverProcessor());
+            responseToProcessor.Add(ServerResponse.RoundFinished, new RoundFinishedProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerChecked, new PlayerCheckedProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerCalled, new PlayerCalledProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerFolded, new PlayerFoldedProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerRaised, new PlayerRaisedProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerAllIn, new PlayerAllInProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerIndex, new PlayerIndexProcessor());
+            responseToProcessor.Add(ServerResponse.Blinds, new BlindsProcessor());
+            responseToProcessor.Add(ServerResponse.RequiredBet, new RequiredBetProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerJoined, new PlayerJoinedProcessor());
+            responseToProcessor.Add(ServerResponse.PlayerLeft, new PlayerLeftProcessor());
+            responseToProcessor.Add(ServerResponse.Showdown, new ShowdownProcessor());
+            responseToProcessor.Add(ServerResponse.CardsReveal, new CardsRevealProcessor());
+            responseToProcessor.Add(ServerResponse.ChatMessage, new ChatMessageProcessor());
         }
 
         private void Start()
         {
-            new Thread(ProduceServerResponses).Start();
-            new Thread(ConsumeServerResponses).Start();
+            new Thread(HandleServerResponses).Start();
         }
 
-        private void ProduceServerResponses()
+        private void HandleServerResponses()
         {
             int flag = Session.Reader.Read();
 
             while (flag != -1 && (ServerResponse) flag != ServerResponse.LeaveTableSuccess)
             {
-                if (responseToProcessorFactory.TryGetValue((ServerResponse) flag, out var processorFactory))
+                if (responseToProcessor.TryGetValue((ServerResponse) flag, out var processor))
                 {
-                    var processor = processorFactory();
                     processor.ReadPayloadData();
-                    
-                    if (processor.CanWait)
-                    {
-                        actionBlockingQueue.Add(processor.ProcessResponse);
-                    }
-                    else
-                    {
-                        processor.ProcessResponse(this);
-                    }
+                    processor.ProcessResponse(this);
                 }
 
                 flag = Session.Reader.Read();
             }
             
-            actionBlockingQueue.Add(PoisonPill);
             MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
-        }
-
-        private void ConsumeServerResponses()
-        {
-            while (true)
-            {
-                var action = actionBlockingQueue.Take();
-                if (action == PoisonPill) return;
-                action(this);
-            }
         }
     }
 }

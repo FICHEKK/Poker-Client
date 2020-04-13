@@ -10,7 +10,6 @@ namespace Table.ResponseProcessors
         
         private class BlindsProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private List<int> justJoinedPlayerIndexes;
             private int dealerButtonIndex;
             private int smallBlindIndex;

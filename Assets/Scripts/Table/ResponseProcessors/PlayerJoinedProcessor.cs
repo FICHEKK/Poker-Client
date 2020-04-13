@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class PlayerJoinedProcessor : IServerResponseProcessor
         {
-            public bool CanWait => false;
             private int index;
             private string username;
             private int stack;

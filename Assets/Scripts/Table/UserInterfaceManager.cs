@@ -186,11 +186,8 @@ namespace Table
         private void PlayerIndexEventHandler(object sender, PlayerIndexEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                if (e.Index == seatIndex)
-                {
-                    actionInterface.SetActive(true);
-                    AudioManager.Instance.Play(Sound.Bell);
-                }
+                actionInterface.SetActive(e.Index == seatIndex);
+                if (e.Index == seatIndex) AudioManager.Instance.Play(Sound.Bell);
 
                 if (focusedSeatIndex >= 0)
                 {
@@ -288,6 +285,7 @@ namespace Table
         private void FlopReceivedEventHandler(object sender, FlopReceivedEventArgs e) => 
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                seats[focusedSeatIndex].SetFocused(false);
                 StartCoroutine(DisplayFlop(e));
                 StartCoroutine(AddBetsToPot());
             });
@@ -295,6 +293,7 @@ namespace Table
         private void TurnReceivedEventHandler(object sender, TurnReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                seats[focusedSeatIndex].SetFocused(false);
                 StartCoroutine(DisplayCard(communityCards[3], e.Card));
                 StartCoroutine(AddBetsToPot());
             });
@@ -302,6 +301,7 @@ namespace Table
         private void RiverReceivedEventHandler(object sender, RiverReceivedEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
+                seats[focusedSeatIndex].SetFocused(false);
                 StartCoroutine(DisplayCard(communityCards[4], e.Card));
                 StartCoroutine(AddBetsToPot());
             });
@@ -309,9 +309,7 @@ namespace Table
         private void ShowdownEventHandler(object sender, ShowdownEventArgs e) =>
             MainThreadExecutor.Instance.Enqueue(() =>
             {
-                if (focusedSeatIndex >= 0)
-                    seats[focusedSeatIndex].SetFocused(false);
-                    
+                seats[focusedSeatIndex].SetFocused(false);
                 actionInterface.SetActive(false);
                 StartCoroutine(SplitWholePotToWinners(e.SidePots));
             });

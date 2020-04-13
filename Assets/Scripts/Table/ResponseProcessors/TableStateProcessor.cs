@@ -10,8 +10,6 @@ namespace Table.ResponseProcessors
         
         private class TableStateProcessor : IServerResponseProcessor
         {
-            public bool CanWait => false;
-            
             private int dealerButtonIndex;
             private int smallBlind;
             private int maxPlayers;

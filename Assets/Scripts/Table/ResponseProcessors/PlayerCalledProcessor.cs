@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class PlayerCalledProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private int playerIndex;
             private int callAmount;
 

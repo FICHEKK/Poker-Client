@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class HandProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private string card1;
             private string card2;
 

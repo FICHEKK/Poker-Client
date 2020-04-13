@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class TurnProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private string card;
 
             public void ReadPayloadData()

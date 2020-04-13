@@ -10,7 +10,6 @@ namespace Table.ResponseProcessors
         
         private class CardsRevealProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private List<int> indexes;
             private List<string> firstCards;
             private List<string> secondCards;

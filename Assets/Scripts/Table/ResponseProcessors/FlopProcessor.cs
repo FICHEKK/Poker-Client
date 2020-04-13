@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class FlopProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private string card1;
             private string card2;
             private string card3;

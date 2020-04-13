@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class PlayerIndexProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private int index;
 
             public void ReadPayloadData()

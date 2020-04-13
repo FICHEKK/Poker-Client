@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class RequiredBetProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private int requiredCall;
             private int minRaise;
             private int maxRaise;

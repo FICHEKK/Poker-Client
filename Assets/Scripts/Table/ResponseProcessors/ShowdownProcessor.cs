@@ -10,7 +10,6 @@ namespace Table.ResponseProcessors
         
         private class ShowdownProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
             private List<ShowdownEventArgs.Pot> sidePots;
 
             public void ReadPayloadData()

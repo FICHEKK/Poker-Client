@@ -9,7 +9,6 @@ namespace Table.ResponseProcessors
         
         private class ChatMessageProcessor : IServerResponseProcessor
         {
-            public bool CanWait => false;
             private int playerIndex;
             private string message;
 

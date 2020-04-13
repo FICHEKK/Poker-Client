@@ -9,8 +9,6 @@ namespace Table.ResponseProcessors
         
         private class RoundFinishedProcessor : IServerResponseProcessor
         {
-            public bool CanWait => true;
-
             public void ReadPayloadData()
             {
                 // no data to read
