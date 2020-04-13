@@ -119,11 +119,14 @@ namespace Table
 
         private IEnumerator AnimateFrameBorder()
         {
+            var startingColor = Color.green;
+            var endingColor = Color.red;
             const float decreasePerFrame = 1 / TableConstant.PlayerTurnDuration;
             
             while (frameBorder.enabled && frameBorder.fillAmount > 0)
             {
                 frameBorder.fillAmount -= decreasePerFrame * Time.deltaTime;
+                frameBorder.color = Color.Lerp(endingColor, startingColor, frameBorder.fillAmount);
                 yield return null;
             }
         }
