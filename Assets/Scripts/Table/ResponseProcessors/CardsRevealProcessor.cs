@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Table.EventArguments;
 
 namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
+        public event EventHandler<CardsRevealedEventArgs> CardsRevealed;
+        
         private class CardsRevealProcessor : IServerResponseProcessor
         {
             public bool CanWait => true;

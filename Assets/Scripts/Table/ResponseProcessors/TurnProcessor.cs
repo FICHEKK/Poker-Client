@@ -1,9 +1,12 @@
-﻿using Table.EventArguments;
+﻿using System;
+using Table.EventArguments;
 
 namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
+        public event EventHandler<TurnReceivedEventArgs> TurnReceived;
+        
         private class TurnProcessor : IServerResponseProcessor
         {
             public bool CanWait => true;

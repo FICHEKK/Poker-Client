@@ -1,9 +1,12 @@
-﻿using Table.EventArguments;
+﻿using System;
+using Table.EventArguments;
 
 namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
+        public event EventHandler<PlayerAllInEventArgs> PlayerAllIn;
+        
         private class PlayerAllInProcessor : IServerResponseProcessor
         {
             public bool CanWait => true;

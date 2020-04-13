@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using static Table.ResponseProcessors.ServerConnectionHandler;
 
 namespace Table.EventArguments
 {
-    public class TableInitEventArgs : EventArgs
+    public class TableStateReceivedEventArgs : EventArgs
     {
         public readonly List<string> CommunityCards;
         public int PlayerIndex { get; }
@@ -19,7 +18,7 @@ namespace Table.EventArguments
         public List<int> Bets { get; }
         public List<bool> Folds { get; }
 
-        public TableInitEventArgs(
+        public TableStateReceivedEventArgs(
             List<int> indexes,
             List<string> usernames,
             List<int> stacks,

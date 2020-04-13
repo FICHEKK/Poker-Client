@@ -52,7 +52,7 @@ namespace Table
 
             var handler = GetComponentInParent<ResponseProcessors.ServerConnectionHandler>();
 
-            handler.TableInit += TableInitEventHandler;
+            handler.TableStateReceived += TableStateReceivedEventHandler;
             handler.HandReceived += HandReceivedEventHandler;
             
             handler.PlayerJoined += PlayerJoinedEventHandler;
@@ -101,7 +101,7 @@ namespace Table
         //                      Joining the table
         //----------------------------------------------------------------
 
-        private void TableInitEventHandler(object sender, TableInitEventArgs e)
+        private void TableStateReceivedEventHandler(object sender, TableStateReceivedEventArgs e)
         {
             MainThreadExecutor.Instance.Enqueue(() =>
             {

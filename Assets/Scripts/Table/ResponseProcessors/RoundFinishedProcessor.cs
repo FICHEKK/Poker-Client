@@ -1,9 +1,12 @@
-﻿using Table.EventArguments;
+﻿using System;
+using Table.EventArguments;
 
 namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
+        public event EventHandler<RoundFinishedEventArgs> RoundFinished;
+        
         private class RoundFinishedProcessor : IServerResponseProcessor
         {
             public bool CanWait => true;

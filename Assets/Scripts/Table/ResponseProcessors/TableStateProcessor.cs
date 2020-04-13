@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Table.EventArguments;
 
 namespace Table.ResponseProcessors
 {
     public sealed partial class ServerConnectionHandler
     {
+        public event EventHandler<TableStateReceivedEventArgs> TableStateReceived;
+        
         private class TableStateProcessor : IServerResponseProcessor
         {
             public bool CanWait => false;
@@ -39,7 +42,7 @@ namespace Table.ResponseProcessors
 
             public void ProcessResponse(ServerConnectionHandler handler)
             {
-                handler.TableInit?.Invoke(handler, new TableInitEventArgs(
+                handler.TableStateReceived?.Invoke(handler, new TableStateReceivedEventArgs(
                     indexes,
                     usernames,
                     stacks,
