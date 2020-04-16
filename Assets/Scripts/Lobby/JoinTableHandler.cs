@@ -30,15 +30,15 @@ namespace Lobby
                 return;
             }
 
-            switch ((ServerJoinTableResponse) responseCode)
+            switch ((ServerResponse) responseCode)
             {
-                case ServerJoinTableResponse.Success:
+                case ServerResponse.JoinTableSuccess:
                     GetComponent<SceneLoader>().LoadScene();
                     break;
-                case ServerJoinTableResponse.TableFull:
+                case ServerResponse.JoinTableTableFull:
                     DisplayMessage("Could not join: Table is full.");
                     break;
-                case ServerJoinTableResponse.TableDoesNotExist:
+                case ServerResponse.JoinTableTableDoesNotExist:
                     DisplayMessage("Could not join: Table does not exist.");
                     break;
                 default:

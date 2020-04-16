@@ -65,13 +65,13 @@ namespace Register
                 return;
             }
             
-            switch ((ServerRegistrationResponse) responseCode)
+            switch ((ServerResponse) responseCode)
             {
-                case ServerRegistrationResponse.Success:
+                case ServerResponse.RegistrationSuccess:
                     GiveFeedback("Successfully registered!", ServerSuccessColor, Sound.Success); break;
-                case ServerRegistrationResponse.UsernameTaken:
+                case ServerResponse.RegistrationUsernameTaken:
                     GiveFeedback("Username is already taken.", ServerErrorColor, Sound.Error); break;
-                case ServerRegistrationResponse.DatabaseError:
+                case ServerResponse.RegistrationDatabaseError:
                     GiveFeedback("Server database error occurred. Please try again.", ServerErrorColor, Sound.Error); break;
                 default:
                     GiveFeedback("Unexpected error occurred. Please try again.", ServerErrorColor, Sound.Error); break;

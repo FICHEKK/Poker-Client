@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Table.EventArguments;
@@ -161,7 +162,7 @@ namespace Table
                 foreach (var seat in seats.Where(seat => !seat.IsEmpty))
                 {
                     seat.MarkAsPlaying();
-                    seat.HideCards();
+                    seat.ShowCardsBack();
                 }
 
                 StartCoroutine(DisplayHand(e));
@@ -319,6 +320,7 @@ namespace Table
             MainThreadExecutor.Instance.Enqueue(() =>
             {
                 HideCommunityCards();
+                seats[seatIndex].HideCards();
                 potStack.UpdateStack(0);
                 winningHandText.text = string.Empty;
             });
@@ -335,9 +337,23 @@ namespace Table
             UpdateRaiseButtonText();
         }
 
-        public void UpdateRaiseButtonText()
+        private float lastSliderValueChangeTime;
+        private const float MinimumSoundPeriod = 0.05f;
+
+        public void ManualSliderValueChange()
         {
-            raiseButtonText.text = "Raise to " + raiseSlider.value;
+            if (Time.time > lastSliderValueChangeTime + MinimumSoundPeriod)
+            {
+                AudioManager.Instance.Play(Sound.Slider);
+                lastSliderValueChangeTime = Time.time;
+            }
+            
+            UpdateRaiseButtonText();
+        }
+
+        private void UpdateRaiseButtonText()
+        {
+            raiseButtonText.text = "RAISE TO " + raiseSlider.value;
         }
         
         private void HideCommunityCards()
@@ -510,11 +526,24 @@ namespace Table
         {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.LeaveTable);
         }
+        
+        //----------------------------------------------------------------
+        //                            Chat
+        //----------------------------------------------------------------
+        
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Return) && chatInputField.interactable)
+            {
+                SendChatMessage();
+                chatInputField.Select();
+            }
+        }
 
         public void SendChatMessage()
         {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.SendChatMessage);
-            Session.Writer.WriteLine(chatInputField.text);
+            Session.Writer.WriteLine(chatInputField.text.Replace("\n", "").Replace("\r", ""));
             chatInputField.text = string.Empty;
         }
     }

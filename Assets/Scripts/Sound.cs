@@ -11,5 +11,6 @@
     AllIn,
     CardFlip,
     DeckShuffle,
-    Bell
+    Bell,
+    Slider
 }

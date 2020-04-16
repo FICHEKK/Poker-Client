@@ -54,9 +54,9 @@ namespace Login
                 return;
             }
 
-            ServerLoginResponse response = (ServerLoginResponse) responseCode;
+            ServerResponse response = (ServerResponse) responseCode;
 
-            if (response == ServerLoginResponse.Success)
+            if (response == ServerResponse.LoginSuccess)
             {
                 Session.HasJustLoggedIn = true;
                 GetComponent<SceneLoader>().LoadScene();
@@ -65,17 +65,17 @@ namespace Login
 
             switch (response)
             {
-                case ServerLoginResponse.ServerFull:
+                case ServerResponse.LoginServerFull:
                     DisplayMessage("Server is full.");
                     break;
-                case ServerLoginResponse.UsernameNotRegistered:
-                case ServerLoginResponse.WrongPassword:
+                case ServerResponse.LoginUsernameNotRegistered:
+                case ServerResponse.LoginWrongPassword:
                     DisplayMessage("Invalid username or password.");
                     break;
-                case ServerLoginResponse.AlreadyLoggedIn:
+                case ServerResponse.LoginAlreadyLoggedIn:
                     DisplayMessage("You are already logged in.");
                     break;
-                case ServerLoginResponse.UsernameBanned:
+                case ServerResponse.LoginUsernameBanned:
                     DisplayMessage("Account has been banned.");
                     break;
                 default:

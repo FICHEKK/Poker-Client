@@ -40,12 +40,12 @@ namespace Lobby
                 return;
             }
             
-            switch ((ServerCreateTableResponse) responseCode)
+            switch ((ServerResponse) responseCode)
             {
-                case ServerCreateTableResponse.Success:
+                case ServerResponse.CreateTableSuccess:
                     DisplayMessage("Table \"" + tableTitleInputField.text + "\" was created!");
                     break;
-                case ServerCreateTableResponse.TitleTaken:
+                case ServerResponse.CreateTableTitleTaken:
                     DisplayMessage("Table \"" + tableTitleInputField.text + "\" already exists.");
                     break;
                 default:

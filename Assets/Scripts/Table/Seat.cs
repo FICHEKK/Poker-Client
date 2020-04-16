@@ -7,7 +7,8 @@ namespace Table
 {
     public class Seat : MonoBehaviour
     {
-        private const float ChatMessageHideDelayInSeconds = 5f;
+        private const float ChatMessageHideDelayBase = 3f;
+        private const float ChatMessageHideDelayPerCharacter = 0.05f;
         private float lastMessageSentTime;
         
         [SerializeField] private Image card1;
@@ -48,8 +49,8 @@ namespace Table
         private void Update()
         {
             if (string.IsNullOrEmpty(chatText.text)) return;
-
-            if (Time.time > lastMessageSentTime + ChatMessageHideDelayInSeconds)
+            
+            if (Time.time > lastMessageSentTime + ChatMessageHideDelayBase + chatText.text.Length * ChatMessageHideDelayPerCharacter)
             {
                 chatText.text = string.Empty;
             }
@@ -66,11 +67,16 @@ namespace Table
             SetStack(Stack + amount);
         }
 
-        public void HideCards()
+        public void ShowCardsBack()
         {
             ToggleCards(true);
             card1.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
             card2.sprite = Resources.Load<Sprite>("Sprites/Cards/Back");
+        }
+
+        public void HideCards()
+        {
+            ToggleCards(false);
         }
 
         //----------------------------------------------------------------
