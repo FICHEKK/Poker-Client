@@ -14,39 +14,64 @@ namespace Lobby
         [SerializeField] private GameObject joinTableButton;
 
         private const int MinSmallBlindsToJoin = 20;
+        private const int MaxSmallBlindsToJoin = 200;
 
         public void ShowJoinTableWindow()
         {
-            HideMessage();
-
-            TableData data = GetComponent<TableData>();
-
-            if (Session.ChipCount < data.SmallBlind * MinSmallBlindsToJoin)
-            {
-                DisplayMessage("You do not have enough chips to join this table.");
-                return;
-            }
-
-            if (data.PlayerCount == data.MaxPlayers)
-            {
-                DisplayMessage("Table is full.");
-                return;
-            }
-
+            var table = GetComponent<TableData>();
+            if (!JoinConditionsSatisfied(table)) return;
+            
             GetComponent<GameObjectToggle>().ShowGameObject();
 
-            var mode = data.IsRanked ? "Ranked" : "Standard";
+            var mode = table.IsRanked ? "Ranked" : "Standard";
             joinTableTitleText.text =
-                $"{data.Title}{Environment.NewLine}" +
-                $"Blinds: {data.SmallBlind}/{data.SmallBlind * 2} | " +
-                $"Players: {data.PlayerCount}/{data.MaxPlayers} | {mode}";
+                $"{table.Title}{Environment.NewLine}" +
+                $"Blinds: {table.SmallBlind}/{table.SmallBlind * 2} | " +
+                $"Players: {table.PlayerCount}/{table.MaxPlayers} | {mode}";
 
-            joinTableSlider.minValue = data.SmallBlind * 2 * 10;
-            joinTableSlider.maxValue = Math.Min(Session.ChipCount, data.SmallBlind * 2 * 200);
-            joinTableSlider.value = joinTableSlider.minValue;
+            joinTableSlider.minValue = table.SmallBlind * MinSmallBlindsToJoin;
+            joinTableSlider.maxValue = Math.Min(Session.ChipCount, table.SmallBlind * MaxSmallBlindsToJoin);
+            
+            if (table.IsRanked)
+            {
+                joinTableSlider.value = joinTableSlider.maxValue;
+                joinTableSlider.interactable = false;
+            }
+            else
+            {
+                joinTableSlider.value = joinTableSlider.minValue;
+                joinTableSlider.interactable = true;
+            }
 
-            joinTableBuyInText.text = "Buy-In: " + data.SmallBlind * MinSmallBlindsToJoin;
-            joinTableButton.GetComponent<TableData>().Overwrite(data);
+            joinTableBuyInText.text = "Buy-In: " + joinTableSlider.value;
+            joinTableButton.GetComponent<TableData>().Overwrite(table);
+        }
+
+        private bool JoinConditionsSatisfied(TableData table)
+        {
+            var message = string.Empty;
+            
+            if (table.IsLocked)
+            {
+                message = "Cannot join: Table is locked.";
+            }
+            else if (table.PlayerCount == table.MaxPlayers)
+            {
+                message = "Cannot join: Table is full.";
+            }
+            else
+            {
+                var requiredChipCount = table.SmallBlind * (table.IsRanked ? MaxSmallBlindsToJoin : MinSmallBlindsToJoin);
+                var difference = Session.ChipCount - requiredChipCount;
+
+                if (difference < 0)
+                {
+                    message = $"Cannot join: Not enough chips (missing {Math.Abs(difference)} chips).";
+                }
+            }
+            
+            DisplayMessage(message);
+            return message == string.Empty;
         }
 
         //----------------------------------------------------------------
@@ -57,11 +82,6 @@ namespace Lobby
         {
             messageText.enabled = true;
             messageText.text = text;
-        }
-
-        private void HideMessage()
-        {
-            messageText.enabled = false;
         }
     }
 }

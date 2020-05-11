@@ -9,14 +9,16 @@ namespace Lobby
         public int PlayerCount { get; set; }
         public int MaxPlayers { get; set; }
         public bool IsRanked { get; set; }
+        public bool IsLocked { get; set; }
 
-        public TableData(string title, int smallBlind, int playerCount, int maxPlayers, bool isRanked)
+        public TableData(string title, int smallBlind, int playerCount, int maxPlayers, bool isRanked, bool isLocked)
         {
             Title = title;
             SmallBlind = smallBlind;
             PlayerCount = playerCount;
             MaxPlayers = maxPlayers;
             IsRanked = isRanked;
+            IsLocked = isLocked;
         }
 
         public void Overwrite(TableData data)
@@ -26,6 +28,7 @@ namespace Lobby
             PlayerCount = data.PlayerCount;
             MaxPlayers = data.MaxPlayers;
             IsRanked = data.IsRanked;
+            IsLocked = data.IsLocked;
         }
     }
 }

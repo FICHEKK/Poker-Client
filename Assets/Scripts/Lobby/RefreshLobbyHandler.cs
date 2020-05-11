@@ -28,7 +28,7 @@ namespace Lobby
 
         private static readonly Color OddButtonColor = new Color(.9f, .9f, .9f);
 
-        void Start()
+        private void Start()
         {
             CheckForLeaveTableReason();
             CheckForLoginReward();
@@ -115,7 +115,7 @@ namespace Lobby
             HideTableButtons();
 
             Session.Writer.BaseStream.WriteByte((byte) ClientRequest.TableList);
-            int tableCount = Session.ReadInt();
+            var tableCount = Session.ReadInt();
 
             for (int i = 0; i < tableCount; i++)
             {
@@ -125,12 +125,13 @@ namespace Lobby
                     Session.ReadInt(), 
                     Session.ReadInt(), 
                     Session.ReadInt(),
+                    Session.ReadBool(),
                     Session.ReadBool()
                 );
             }
         }
 
-        private void ShowTableButton(int index, string title, int smallBlind, int playerCount, int maxPlayers, bool isRanked)
+        private void ShowTableButton(int index, string title, int smallBlind, int playerCount, int maxPlayers, bool isRanked, bool isLocked)
         {
             GameObject button;
 
@@ -144,21 +145,20 @@ namespace Lobby
                 button = Instantiate(tableButton, grid.transform, true);
             }
 
-            if (index % 2 == 1)
-            {
-                button.GetComponent<Image>().color = OddButtonColor;
-            }
+            if (index % 2 == 1) button.GetComponent<Image>().color = OddButtonColor;
 
             var mode = isRanked ? "Ranked" : "Standard";
+            var locked = isLocked ? "Locked" : "";
             button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text =
-                $"{title} | Blinds: {smallBlind}/{smallBlind * 2} | Players: {playerCount}/{maxPlayers} | {mode}";
+                $"{title} | Blinds: {smallBlind}/{smallBlind * 2} | Players: {playerCount}/{maxPlayers} | {mode} {locked}";
 
-            TableData data = button.GetComponent<TableData>();
+            var data = button.GetComponent<TableData>();
             data.Title = title;
             data.SmallBlind = smallBlind;
             data.PlayerCount = playerCount;
             data.MaxPlayers = maxPlayers;
             data.IsRanked = isRanked;
+            data.IsLocked = isLocked;
         }
 
         private void HideTableButtons()
