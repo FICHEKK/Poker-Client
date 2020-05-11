@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using Table.EventArguments;
 using UnityEngine;
 
 namespace Table.ResponseProcessors
@@ -13,6 +15,8 @@ namespace Table.ResponseProcessors
         /// <summary>Maps server response to the appropriate processor for resolving the server response.</summary>
         private readonly Dictionary<ServerResponse, IServerResponseProcessor> responseToProcessor
             = new Dictionary<ServerResponse, IServerResponseProcessor>();
+
+        public event EventHandler<TableLeftEventArgs> TableLeft;
 
         private void Awake()
         {
@@ -46,7 +50,7 @@ namespace Table.ResponseProcessors
         {
             int flag = Session.Reader.Read();
 
-            while (flag != -1 && (ServerResponse) flag != ServerResponse.LeaveTableSuccess)
+            while (flag != -1 && (ServerResponse) flag != ServerResponse.LeaveTable)
             {
                 if (responseToProcessor.TryGetValue((ServerResponse) flag, out var processor))
                 {
@@ -57,7 +61,8 @@ namespace Table.ResponseProcessors
                 flag = Session.Reader.Read();
             }
             
-            MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
+            Session.LeaveTableReason = (ServerResponse) Session.Reader.Read();
+            TableLeft?.Invoke(this, new TableLeftEventArgs());
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Lobby
         [SerializeField] private TMP_InputField smallBlindInputField;
         [SerializeField] private TMP_InputField maxPlayersInputField;
         [SerializeField] private TMP_Text messageText;
+        [SerializeField] private TMP_Dropdown tableModeDropdown;
 
         private const int MinSmallBlind = 1;
         private const int MaxSmallBlind = 1_000_000;
@@ -30,6 +31,9 @@ namespace Lobby
             Session.Writer.WriteLine(tableTitleInputField.text);
             Session.Writer.WriteLine(smallBlindInputField.text);
             Session.Writer.WriteLine(maxPlayersInputField.text);
+            
+            // Send 'S' for standard mode or 'R' for ranked mode.
+            Session.Writer.WriteLine(tableModeDropdown.options[tableModeDropdown.value].text[0]);
         }
 
         private void ProcessServerResponse(int responseCode)

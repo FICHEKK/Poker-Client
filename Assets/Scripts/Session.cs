@@ -15,6 +15,7 @@ public static class Session
     public static StreamWriter Writer { get; set; }
     
     public static bool HasJustLoggedIn { get; set; }
+    public static ServerResponse? LeaveTableReason { get; set; }
 
     public static void Finish()
     {

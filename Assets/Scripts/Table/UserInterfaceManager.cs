@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Table.EventArguments;
@@ -25,9 +24,6 @@ namespace Table
         [SerializeField] private TMP_Text callButtonText;
         [SerializeField] private TMP_Text raiseButtonText;
 
-        [SerializeField] private TMP_InputField chatInputField;
-        [SerializeField] private Button chatSendButton;
-
         [SerializeField] private TMP_Text winningHandText;
         
         [SerializeField] private List<Seat> seats;
@@ -41,8 +37,6 @@ namespace Table
 
         private void Awake()
         {
-            chatInputField.onValueChanged.AddListener(text => chatSendButton.interactable = !string.IsNullOrEmpty(text));
-            
             foreach (var seat in seats)
                 seat.MarkAsEmpty();
 
@@ -55,29 +49,29 @@ namespace Table
 
             handler.TableStateReceived += TableStateReceivedEventHandler;
             handler.HandReceived += HandReceivedEventHandler;
-            
             handler.PlayerJoined += PlayerJoinedEventHandler;
             handler.PlayerLeft += PlayerLeftEventHandler;
             handler.PlayerIndex += PlayerIndexEventHandler;
-
             handler.PlayerChecked += PlayerCheckedEventHandler;
             handler.PlayerCalled += PlayerCalledEventHandler;
             handler.PlayerFolded += PlayerFoldedEventHandler;
             handler.PlayerRaised += PlayerRaisedEventHandler;
             handler.PlayerAllIn += PlayerAllInEventHandler;
-
             handler.BlindsReceived += BlindsReceivedEventHandler;
             handler.RequiredBetReceived += RequiredBetReceivedEventHandler;
             handler.FlopReceived += FlopReceivedEventHandler;
             handler.TurnReceived += TurnReceivedEventHandler;
             handler.RiverReceived += RiverReceivedEventHandler;
             handler.Showdown += ShowdownEventHandler;
-
             handler.CardsRevealed += CardsRevealedEventHandler;
-
             handler.RoundFinished += RoundFinishedEventHandler;
-
             handler.ChatMessageReceived += ChatMessageReceivedEventHandler;
+            handler.TableLeft += TableLeftEventHandler;
+        }
+
+        private void TableLeftEventHandler(object sender, TableLeftEventArgs e)
+        {
+            MainThreadExecutor.Instance.Enqueue(() => GetComponent<SceneLoader>().LoadScene());
         }
 
         private void ChatMessageReceivedEventHandler(object sender, ChatMessageReceivedEventArgs e)
@@ -525,26 +519,6 @@ namespace Table
         public void Leave()
         {
             Session.Client.GetStream().WriteByte((byte) ClientRequest.LeaveTable);
-        }
-        
-        //----------------------------------------------------------------
-        //                            Chat
-        //----------------------------------------------------------------
-        
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Return) && chatInputField.interactable)
-            {
-                SendChatMessage();
-                chatInputField.Select();
-            }
-        }
-
-        public void SendChatMessage()
-        {
-            Session.Client.GetStream().WriteByte((byte) ClientRequest.SendChatMessage);
-            Session.Writer.WriteLine(chatInputField.text.Replace("\n", "").Replace("\r", ""));
-            chatInputField.text = string.Empty;
         }
     }
 }

@@ -34,9 +34,12 @@ namespace Lobby
             }
 
             GetComponent<GameObjectToggle>().ShowGameObject();
-            joinTableTitleText.text = data.Title + Environment.NewLine
-                                                 + "Blinds: " + data.SmallBlind + "/" + data.SmallBlind * 2 + " | "
-                                                 + "Players: " + data.PlayerCount + "/" + data.MaxPlayers;
+
+            var mode = data.IsRanked ? "Ranked" : "Standard";
+            joinTableTitleText.text =
+                $"{data.Title}{Environment.NewLine}" +
+                $"Blinds: {data.SmallBlind}/{data.SmallBlind * 2} | " +
+                $"Players: {data.PlayerCount}/{data.MaxPlayers} | {mode}";
 
             joinTableSlider.minValue = data.SmallBlind * 2 * 10;
             joinTableSlider.maxValue = Math.Min(Session.ChipCount, data.SmallBlind * 2 * 200);

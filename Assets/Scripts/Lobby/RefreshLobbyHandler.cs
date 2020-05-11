@@ -14,19 +14,58 @@ namespace Lobby
         [SerializeField] private GameObject grid;
         [SerializeField] private GameObject tableButton;
 
+        // Reward canvas
         [SerializeField] private GameObject rewardCanvas;
         [SerializeField] private TMP_Text rewardTitleText;
         [SerializeField] private TMP_Text rewardMessageText;
         [SerializeField] private TMP_Text rewardValueText;
         [SerializeField] private StackDisplayer stackDisplayer;
         
+        // Leave table message canvas
+        [SerializeField] private GameObject leaveTableCanvas;
+        [SerializeField] private TMP_Text leaveTableTitleText;
+        [SerializeField] private TMP_Text leaveTableMessageText;
+
         private static readonly Color OddButtonColor = new Color(.9f, .9f, .9f);
 
         void Start()
         {
+            CheckForLeaveTableReason();
             CheckForLoginReward();
             DisplayClientData();
             RefreshTableList();
+        }
+
+        private void CheckForLeaveTableReason()
+        {
+            if (Session.LeaveTableReason == null) return;
+
+            switch (Session.LeaveTableReason)
+            {
+                case ServerResponse.LeaveTableGranted:
+                    Debug.Log("You left the table willingly.");
+                    break;
+                
+                case ServerResponse.LeaveTableNoMoney:
+                    leaveTableCanvas.SetActive(true);
+                    leaveTableTitleText.text = "Bankrupt";
+                    leaveTableMessageText.text = "Unfortunately, you went bankrupt.";
+                    break;
+                
+                case ServerResponse.LeaveTableRanked:
+                    var placeFinished = Session.ReadInt();
+                    var oldRating = Session.ReadInt();
+                    var newRating = Session.ReadInt();
+                    
+                    leaveTableCanvas.SetActive(true);
+                    leaveTableTitleText.text = "Ranked match result";
+                    leaveTableMessageText.text = "Place finished: " + placeFinished + "\n" +
+                                                 "Old rating: " + oldRating + "\n" +
+                                                 "New rating: " + newRating;
+                    break;
+            }
+
+            Session.LeaveTableReason = null;
         }
 
         private void CheckForLoginReward()
@@ -85,12 +124,13 @@ namespace Lobby
                     Session.ReadLine(), 
                     Session.ReadInt(), 
                     Session.ReadInt(), 
-                    Session.ReadInt()
+                    Session.ReadInt(),
+                    Session.ReadBool()
                 );
             }
         }
 
-        private void ShowTableButton(int index, string title, int smallBlind, int playerCount, int maxPlayers)
+        private void ShowTableButton(int index, string title, int smallBlind, int playerCount, int maxPlayers, bool isRanked)
         {
             GameObject button;
 
@@ -109,14 +149,16 @@ namespace Lobby
                 button.GetComponent<Image>().color = OddButtonColor;
             }
 
+            var mode = isRanked ? "Ranked" : "Standard";
             button.GetComponent<Button>().GetComponentInChildren<TMP_Text>().text =
-                title + " | Blinds: " + smallBlind + "/" + smallBlind * 2 + " | Players: " + playerCount + "/" + maxPlayers;
+                $"{title} | Blinds: {smallBlind}/{smallBlind * 2} | Players: {playerCount}/{maxPlayers} | {mode}";
 
             TableData data = button.GetComponent<TableData>();
             data.Title = title;
             data.SmallBlind = smallBlind;
             data.PlayerCount = playerCount;
             data.MaxPlayers = maxPlayers;
+            data.IsRanked = isRanked;
         }
 
         private void HideTableButtons()

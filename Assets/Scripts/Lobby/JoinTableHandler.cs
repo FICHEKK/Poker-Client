@@ -41,6 +41,9 @@ namespace Lobby
                 case ServerResponse.JoinTableTableDoesNotExist:
                     DisplayMessage("Could not join: Table does not exist.");
                     break;
+                case ServerResponse.JoinTableRankedMatchStarted:
+                    DisplayMessage("Could not join: Ranked match has already started.");
+                    break;
                 default:
                     DisplayMessage("Unexpected error occurred. Please try again.");
                     break;
