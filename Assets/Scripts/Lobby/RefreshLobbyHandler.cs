@@ -18,7 +18,7 @@ namespace Lobby
         [SerializeField] private GameObject rewardCanvas;
         [SerializeField] private TMP_Text rewardTitleText;
         [SerializeField] private TMP_Text rewardMessageText;
-        [SerializeField] private TMP_Text rewardValueText;
+        [SerializeField] private TMP_Text rewardTimeUntilText;
         [SerializeField] private StackDisplayer stackDisplayer;
         
         // Leave table message canvas
@@ -56,12 +56,27 @@ namespace Lobby
                     var placeFinished = Session.ReadInt();
                     var oldRating = Session.ReadInt();
                     var newRating = Session.ReadInt();
+
+                    string delta;
+                    var difference = newRating - oldRating;
+                    if (difference > 0)
+                    {
+                        delta = "<color=#00FF00>+" + difference + "</color>";
+                    }
+                    else if (difference == 0)
+                    {
+                        delta = "<color=#808080>" + difference + "</color>";
+                    }
+                    else
+                    {
+                        delta = "<color=#FF0000>" + difference + "</color>";
+                    }
                     
                     leaveTableCanvas.SetActive(true);
                     leaveTableTitleText.text = "Ranked match result";
                     leaveTableMessageText.text = "Place finished: " + placeFinished + "\n" +
                                                  "Old rating: " + oldRating + "\n" +
-                                                 "New rating: " + newRating;
+                                                 "New rating: " + newRating + " (" + delta + ")";
                     break;
             }
 
@@ -82,7 +97,7 @@ namespace Lobby
                 rewardCanvas.SetActive(true);
                 rewardTitleText.text = "Login-reward!";
                 rewardMessageText.text = "You have been rewarded with:";
-                rewardValueText.text = string.Empty;
+                rewardTimeUntilText.text = string.Empty;
                 stackDisplayer.UpdateStack(Session.ReadInt());
             }
             else if (response == ServerResponse.LoginRewardNotActive)
@@ -90,7 +105,7 @@ namespace Lobby
                 rewardCanvas.SetActive(true);
                 rewardTitleText.text = "Come back soon!";
                 rewardMessageText.text = "Your next reward will be in:";
-                rewardValueText.text = Session.ReadLine();
+                rewardTimeUntilText.text = Session.ReadLine();
             }
 
             Session.HasJustLoggedIn = false;
