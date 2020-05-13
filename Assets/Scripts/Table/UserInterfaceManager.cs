@@ -391,7 +391,9 @@ namespace Table
 
             foreach (var winnerIndex in sidePot.WinnerIndexes)
             {
-                seats[winnerIndex].GiveChips(winAmount);
+                if(!seats[winnerIndex].IsEmpty)
+                    seats[winnerIndex].GiveChips(winAmount);
+                
                 sidePotStacks[winnerIndex].UpdateStack(0);
                 sidePotStacks[winnerIndex].transform.localPosition = potStack.OriginalPosition;
             }
